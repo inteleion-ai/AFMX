@@ -208,12 +208,12 @@ async def cmd_validate(args) -> None:
     result = await _request("POST", "/afmx/validate", {"matrix": matrix_def})
 
     if result.get("valid"):
-        print(f"✅  Valid matrix")
+        print("✅  Valid matrix")
         print(f"   Nodes : {result.get('node_count')}")
         print(f"   Edges : {result.get('edge_count')}")
         print(f"   Order : {' → '.join(result.get('execution_order', []))}")
     else:
-        print(f"❌  Invalid matrix:")
+        print("❌  Invalid matrix:")
         for err in result.get("errors", []):
             print(f"   • {err}")
         sys.exit(1)

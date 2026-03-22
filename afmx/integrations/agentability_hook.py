@@ -220,7 +220,7 @@ def _make_post_node_hook(tracer: "Tracer"):  # type: ignore[name-defined]
             # Reasoning chain
             reasoning: list[str] = [f"AFMX node '{node.name}' ({node.type}) — attempt {attempt}"]
             if fallback_used:
-                reasoning.append(f"Primary node failed; fallback_node executed successfully")
+                reasoning.append("Primary node failed; fallback_node executed successfully")
             if error:
                 reasoning.append(f"Terminal failure: {error}")
 
