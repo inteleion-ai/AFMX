@@ -4,20 +4,23 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name        = "afmx"
-version     = "1.0.0"
+version     = "1.0.1"
 description = "Agent Flow Matrix Execution Engine — production-grade execution fabric for autonomous agents"
 readme      = "README.md"
 requires-python = ">=3.10"
-license     = {text = "MIT"}
-authors     = [{name = "Agentdyne9"}]
+license     = {text = "Apache-2.0"}
+authors     = [{name = "Agentdyne9", email = "hello@agentdyne9.com"}]
 keywords    = [
     "agents", "ai", "orchestration", "execution", "dag",
     "multi-agent", "langchain", "langgraph", "crewai", "openai",
+    "fastapi", "async", "workflow",
 ]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
@@ -61,13 +64,11 @@ adapters = [
     "openai>=1.0.0",
 ]
 
-# afmx[full] — everything except adapter frameworks (they have heavy deps)
 full = [
     "afmx[redis,metrics,http]",
     "orjson>=3.10.0",
 ]
 
-# afmx[dev] — development + testing toolchain
 dev = [
     "pytest>=8.0.0",
     "pytest-asyncio>=0.23.0",
@@ -86,9 +87,11 @@ dev = [
 afmx = "afmx.cli:main"
 
 [project.urls]
-Repository    = "https://github.com/agentdyne9/afmx"
-Documentation = "https://github.com/agentdyne9/afmx/tree/main/docs"
-"Bug Tracker" = "https://github.com/agentdyne9/afmx/issues"
+Homepage      = "https://github.com/inteleion-ai/AFMX"
+Repository    = "https://github.com/inteleion-ai/AFMX"
+Documentation = "https://github.com/inteleion-ai/AFMX/tree/main/docs"
+"Bug Tracker" = "https://github.com/inteleion-ai/AFMX/issues"
+Changelog     = "https://github.com/inteleion-ai/AFMX/blob/main/CHANGELOG.md"
 
 [tool.setuptools.packages.find]
 where   = ["."]
@@ -98,18 +101,18 @@ exclude = [
     "examples*",
     "scripts*",
     "docs*",
-    "afmx/dashboard*",    # built separately via npm
+    "afmx/dashboard*",
 ]
 
 # ── Test configuration ────────────────────────────────────────────────────────
 [tool.pytest.ini_options]
-asyncio_mode                     = "auto"
+asyncio_mode                       = "auto"
 asyncio_default_fixture_loop_scope = "function"
-testpaths                        = ["tests"]
-python_files                     = ["test_*.py"]
-python_classes                   = ["Test*"]
-python_functions                 = ["test_*"]
-addopts                          = ["--tb=short", "--strict-markers", "-q"]
+testpaths                          = ["tests"]
+python_files                       = ["test_*.py"]
+python_classes                     = ["Test*"]
+python_functions                   = ["test_*"]
+addopts                            = ["--tb=short", "--strict-markers", "-q"]
 markers = [
     "unit: Unit tests (fast, no I/O)",
     "integration: Integration tests (FastAPI + engine)",
@@ -156,8 +159,8 @@ target-version = "py310"
 [tool.ruff.lint]
 select = ["E", "F", "I", "W", "UP"]
 ignore = [
-    "E501",  # line too long — black handles this
-    "F401",  # imported but unused — many __init__.py re-exports
+    "E501",
+    "F401",
 ]
 
 [tool.ruff.lint.isort]
@@ -165,9 +168,9 @@ known-first-party = ["afmx"]
 
 # ── MyPy ──────────────────────────────────────────────────────────────────────
 [tool.mypy]
-python_version      = "3.10"
-strict              = false
+python_version         = "3.10"
+strict                 = false
 ignore_missing_imports = true
-warn_return_any     = false
-check_untyped_defs  = true
-exclude             = ["tests/", "examples/", "scripts/"]
+warn_return_any        = false
+check_untyped_defs     = true
+exclude                = ["tests/", "examples/", "scripts/"]

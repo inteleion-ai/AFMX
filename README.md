@@ -4,88 +4,56 @@
 
 AFMX is the **execution fabric for autonomous agents** — deterministic, fault-tolerant, and built like infrastructure.
 
+[![CI](https://github.com/inteleion-ai/AFMX/actions/workflows/ci.yml/badge.svg)](https://github.com/inteleion-ai/AFMX/actions/workflows/ci.yml)
+[![PyPI version](https://img.shields.io/pypi/v/afmx.svg)](https://pypi.org/project/afmx/)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org)
-[![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![License](https://img.shields.io/badge/license-Apache%202.0-green)](LICENSE)
 [![Status](https://img.shields.io/badge/status-production--stable-brightgreen)]()
 
 ---
 
-## What AFMX Is
+## What is AFMX?
 
-| Layer | Responsibility |
-|---|---|
-| `ExecutionMatrix` | DAG of nodes and edges — the execution topology |
-| `AFMXEngine` | Orchestrates SEQUENTIAL, PARALLEL, and HYBRID execution |
-| `NodeExecutor` | Per-node execution with retry, timeout, circuit breaker, hooks |
-| `ToolRouter` | Deterministic, rule-based tool selection |
-| `AgentDispatcher` | Routes tasks by complexity, capability, or policy |
-| `RetryManager` | Exponential backoff + jitter + per-node circuit breaker |
-| `HookRegistry` | PRE/POST node and matrix hooks for cross-cutting behaviour |
-| `EventBus` | Every state transition emits an observable event |
-| `ConcurrencyManager` | Global semaphore with queue timeout and per-matrix caps |
-| `StateStore` | In-memory or Redis-backed execution record persistence |
-| `MatrixStore` | Named, versioned matrix definitions |
-| `CheckpointStore` | Incremental per-node checkpoints for resumability |
-| `AuditStore` | Append-only audit trail (JSON/CSV/NDJSON export) |
-| `RBACMiddleware` | 5 roles × 16 permissions API key authentication |
-| `PluginRegistry` | Decorator-first handler registration |
+AFMX is a **production-grade, deterministic execution fabric for autonomous agents**.
+It is not an agent reasoning framework — it is the layer that controls *how* agents act reliably in production.
 
-## What AFMX Is Not
-
-- Not an LLM reasoning layer — that's LangChain, LangGraph, or your agent framework
-- Not a memory system — that's HyperState
-- Not a workflow scheduler — that's Airflow (see [Architecture](docs/architecture.md) for the full comparison)
-- Not a backend orchestration platform — that's Temporal
+```
+Your Agent Logic  (LangChain / LangGraph / CrewAI / OpenAI / custom Python)
+        ↓
+ExecutionMatrix   (DAG: nodes + edges + mode + abort policy)
+        ↓
+AFMXEngine
+        ↓
+Deterministic execution:
+  retry · fallback · circuit breaker · hooks · events · audit · RBAC
+```
 
 ---
 
-## Architecture
+## Install
 
+```bash
+pip install afmx
 ```
-┌─────────────────────────────────────────────────────┐
-│                  HTTP / WebSocket API                │
-│         FastAPI  ·  REST  ·  WS  ·  Admin            │
-├─────────────────────────────────────────────────────┤
-│                    AFMXEngine                        │
-│   ┌──────────────┐  ┌────────────┐  ┌────────────┐  │
-│   │ NodeExecutor │  │ToolRouter  │  │  Retry +   │  │
-│   │  + Hooks     │  │+Dispatcher │  │   CB       │  │
-│   └──────────────┘  └────────────┘  └────────────┘  │
-│   ┌─────────────────────────────────────────────┐   │
-│   │         SEQUENTIAL | PARALLEL | HYBRID       │   │
-│   └─────────────────────────────────────────────┘   │
-├─────────────────────────────────────────────────────┤
-│            HandlerRegistry + Adapters                │
-│    LangChain · LangGraph · CrewAI · OpenAI           │
-├──────────────────────┬──────────────────────────────┤
-│   Stores             │   Observability               │
-│   State · Matrix     │   EventBus · Prometheus       │
-│   Checkpoint · Audit │   WebSocket · Agentability    │
-└──────────────────────┴──────────────────────────────┘
+
+Or install with extras:
+
+```bash
+pip install "afmx[redis,metrics]"    # Redis store + Prometheus
+pip install "afmx[full]"             # everything except adapter frameworks
+pip install "afmx[dev]"              # development + testing toolchain
 ```
 
 ---
 
 ## Quick Start
 
-### 1. Install
-
-```bash
-cd AFMX
-python3.10 -m venv .venv && source .venv/bin/activate
-pip install -e ".[dev]"
-```
-
-### 2. Start server
-
 ```bash
 python3.10 -m afmx serve --reload
 # API:       http://localhost:8100
 # Docs:      http://localhost:8100/docs
-# Dashboard: http://localhost:8100/afmx/ui  (after npm run build)
+# Dashboard: http://localhost:8100/afmx/ui
 ```
-
-### 3. Execute a matrix
 
 ```bash
 curl -s -X POST http://localhost:8100/afmx/execute \
@@ -108,97 +76,87 @@ curl -s -X POST http://localhost:8100/afmx/execute \
   }' | python3 -m json.tool
 ```
 
-### 4. Run the live multi-agent demo
+### Run the live demo (7 multi-agent scenarios)
 
 ```bash
 pip install httpx
 python demo_multiagent.py --scenario all
 ```
 
-This fires 7 real scenarios against the running server — research chains, parallel fan-out, conditional routing, retry/fallback, document pipelines, swarm review, and a 20-execution burst test. Watch everything appear live in the dashboard.
+---
+
+## Core Features
+
+| Layer | Responsibility |
+|---|---|
+| `ExecutionMatrix` | DAG of nodes and edges — the execution topology |
+| `AFMXEngine` | SEQUENTIAL, PARALLEL, HYBRID orchestration |
+| `NodeExecutor` | Per-node execution with retry, timeout, circuit breaker |
+| `RetryManager` | Exponential backoff + jitter + per-node circuit breaker |
+| `ToolRouter` | Deterministic rule-based tool selection |
+| `AgentDispatcher` | Routes agents by complexity, capability, or policy |
+| `HookRegistry` | PRE/POST node and matrix hooks |
+| `EventBus` | Every state transition emits an observable event |
+| `ConcurrencyManager` | Global semaphore with queue timeout |
+| `StateStore` | In-memory or Redis-backed execution persistence |
+| `MatrixStore` | Named, versioned matrix definitions |
+| `CheckpointStore` | Per-node incremental checkpoints for resumability |
+| `AuditStore` | Append-only audit trail (JSON/CSV/NDJSON export) |
+| `RBACMiddleware` | 5 roles × 16 permissions API key authentication |
+| `PluginRegistry` | Decorator-first handler registration |
 
 ---
 
-## Core Concepts
-
-### Node
-
-The atomic execution unit. Declares what to run and how to run it safely:
-
-```python
-from afmx import Node, NodeType, RetryPolicy, TimeoutPolicy, CircuitBreakerPolicy
-
-node = Node(
-    id="search",
-    name="web_search",
-    type=NodeType.TOOL,
-    handler="my_search_handler",
-
-    retry_policy=RetryPolicy(retries=3, backoff_seconds=1.0, backoff_multiplier=2.0),
-    timeout_policy=TimeoutPolicy(timeout_seconds=15.0),
-    circuit_breaker=CircuitBreakerPolicy(enabled=True, failure_threshold=5),
-
-    fallback_node_id="search-fallback",   # run if primary fails terminally
-)
-```
-
-### Edge
-
-Directed connection between nodes. Supports five condition types:
-
-```python
-from afmx import Edge, EdgeCondition, EdgeConditionType
-
-# Always traverse
-Edge(**{"from": "n1", "to": "n2"})
-
-# Conditional on output value
-Edge(**{
-    "from": "classifier", "to": "urgent_handler",
-    "condition": EdgeCondition(
-        type=EdgeConditionType.ON_OUTPUT,
-        output_key="category",
-        output_value="urgent",
-    )
-})
-
-# Python expression
-Edge(**{
-    "from": "scorer", "to": "high_confidence_path",
-    "condition": EdgeCondition(
-        type=EdgeConditionType.EXPRESSION,
-        expression="output['score'] > 0.85",
-    )
-})
-```
-
-### ExecutionMatrix
-
-The complete DAG declaration:
-
-```python
-from afmx import ExecutionMatrix, ExecutionMode, AbortPolicy
-
-matrix = ExecutionMatrix(
-    name="research-pipeline",
-    mode=ExecutionMode.HYBRID,           # SEQUENTIAL | PARALLEL | HYBRID
-    nodes=[analyst_node, writer_node, reviewer_node],
-    edges=[edge_analyst_writer, edge_writer_reviewer],
-    abort_policy=AbortPolicy.FAIL_FAST,  # FAIL_FAST | CONTINUE | CRITICAL_ONLY
-    max_parallelism=10,
-    global_timeout_seconds=300.0,
-)
-```
-
-### Execution Modes
+## Execution Modes
 
 | Mode | Behaviour |
 |---|---|
 | `SEQUENTIAL` | Topological order, one node at a time, conditional edge evaluation |
 | `PARALLEL` | All nodes fire concurrently under semaphore cap |
-| `HYBRID` | DAG level-sets — nodes in same level run in parallel, levels are sequential |
+| `HYBRID` | DAG level-sets — same-level nodes run in parallel, levels are sequential |
 
-### Registering Handlers
+---
+
+## Fault Tolerance
+
+```python
+from afmx import Node, RetryPolicy, CircuitBreakerPolicy, TimeoutPolicy
+
+Node(
+    name="external_api",
+    handler="api_call",
+    retry_policy=RetryPolicy(
+        retries=5,
+        backoff_seconds=1.0,
+        backoff_multiplier=2.0,   # 1s → 2s → 4s → 8s → 16s
+        jitter=True,
+    ),
+    circuit_breaker=CircuitBreakerPolicy(
+        enabled=True,
+        failure_threshold=5,
+        recovery_timeout_seconds=60.0,
+    ),
+    fallback_node_id="api_fallback",
+)
+```
+
+---
+
+## Framework Adapters
+
+Built-in adapters for LangChain, LangGraph, CrewAI, and OpenAI — all lazy-loaded.
+
+```python
+from afmx.adapters.langchain import LangChainAdapter
+from langchain.tools import DuckDuckGoSearchRun
+
+adapter = LangChainAdapter()
+node = adapter.to_afmx_node(DuckDuckGoSearchRun(), node_id="search")
+```
+
+---
+
+## Registering Handlers
 
 ```python
 from afmx.plugins import default_registry
@@ -206,110 +164,12 @@ from afmx.plugins import default_registry
 @default_registry.agent("my_analyst")
 async def analyst(node_input: dict, context, node) -> dict:
     topic = node_input["input"].get("topic", "")
-    return {
-        "analysis": f"Deep analysis of: {topic}",
-        "confidence": 0.87,
-        "agent": "analyst",
-    }
+    return {"analysis": f"Analysis of: {topic}", "confidence": 0.87}
 
 @default_registry.tool("web_search")
 async def search(node_input: dict, context, node) -> dict:
     query = node_input["params"].get("query") or node_input["input"]
-    results = await run_search(query)
-    return {"results": results}
-```
-
-### Handler Signature
-
-Every handler receives this exact signature:
-
-```python
-async def my_handler(node_input: dict, context: ExecutionContext, node: Node) -> Any:
-    node_input["input"]        # Matrix-level input payload
-    node_input["params"]       # Resolved node config ({{templates}} expanded)
-    node_input["variables"]    # Runtime variables
-    node_input["node_outputs"] # All upstream node outputs keyed by node_id
-    node_input["memory"]       # Shared execution memory
-    node_input["metadata"]     # Merged execution + node metadata
-    return {"result": "..."}   # Any JSON-serializable value
-```
-
----
-
-## Retry + Circuit Breaker
-
-Per-node. Configured in the matrix definition:
-
-```python
-Node(
-    name="external_api",
-    type=NodeType.TOOL,
-    handler="api_call",
-    retry_policy=RetryPolicy(
-        retries=5,
-        backoff_seconds=1.0,
-        backoff_multiplier=2.0,
-        max_backoff_seconds=30.0,
-        jitter=True,                   # 1s → 2s → 4s → 8s → 16s (±jitter)
-    ),
-    circuit_breaker=CircuitBreakerPolicy(
-        enabled=True,
-        failure_threshold=5,           # trips after 5 failures
-        recovery_timeout_seconds=60.0, # auto-recovers after 60s
-    ),
-    fallback_node_id="api_fallback",   # activates if primary fails terminally
-)
-```
-
----
-
-## Observability
-
-### Event Bus
-
-```python
-@bus.subscribe(EventType.NODE_FAILED)
-async def on_fail(event):
-    await alert_team(event.execution_id, event.data["error"])
-```
-
-### Prometheus Metrics
-
-```
-afmx_executions_total{matrix_name, status}
-afmx_execution_duration_seconds{matrix_name, status}
-afmx_nodes_total{node_type, status}
-afmx_node_duration_seconds{node_type, status}
-afmx_node_retries_total{node_id}
-afmx_circuit_breaker_trips_total{node_id}
-afmx_active_executions
-```
-
-Scrape at `GET /metrics` when `AFMX_PROMETHEUS_ENABLED=true`.
-
-### WebSocket Streaming
-
-```python
-import websockets, json
-
-async with websockets.connect(f"ws://localhost:8100/afmx/ws/stream/{exec_id}") as ws:
-    async for msg in ws:
-        event = json.loads(msg)
-        if event["type"] == "eof": break
-        print(event["type"], event.get("data", {}))
-```
-
-### Agentability Integration
-
-AFMX integrates with [Agentability](../new_project/agentability/Agentability) to capture agent intelligence data — confidence scores, reasoning chains, token costs, and conflict detection.
-
-```bash
-# Enable in .env
-AFMX_AGENTABILITY_ENABLED=true
-AFMX_AGENTABILITY_DB_PATH=agentability.db
-
-# Run the integration demo
-python demo_agentability.py
+    return {"results": await run_search(query)}
 ```
 
 ---
@@ -320,22 +180,12 @@ python demo_agentability.py
 |---|---|---|
 | `POST` | `/afmx/execute` | Execute matrix synchronously |
 | `POST` | `/afmx/execute/async` | Execute and return immediately |
-| `GET` | `/afmx/status/{id}` | Poll execution status |
 | `GET` | `/afmx/result/{id}` | Full result with node outputs |
-| `GET` | `/afmx/executions` | List recent executions |
 | `POST` | `/afmx/validate` | Validate matrix without executing |
-| `POST` | `/afmx/cancel/{id}` | Cancel running execution |
 | `POST` | `/afmx/retry/{id}` | Retry failed execution |
 | `POST` | `/afmx/matrices` | Save named matrix |
-| `GET` | `/afmx/matrices` | List saved matrices |
-| `POST` | `/afmx/matrices/{name}/execute` | Execute saved matrix by name |
-| `GET` | `/afmx/plugins` | List registered handlers |
-| `GET` | `/afmx/adapters` | List framework adapters |
-| `GET` | `/afmx/concurrency` | Live concurrency stats |
+| `GET` | `/afmx/executions` | List recent executions |
 | `GET` | `/afmx/audit` | Query audit log |
-| `GET` | `/afmx/audit/export/{format}` | Export audit (json/csv/ndjson) |
-| `GET` | `/afmx/admin/keys` | List API keys (RBAC) |
-| `POST` | `/afmx/admin/keys` | Create API key |
 | `WS` | `/afmx/ws/stream/{id}` | Real-time event streaming |
 | `GET` | `/health` | Health check |
 | `GET` | `/metrics` | Prometheus metrics |
@@ -344,29 +194,61 @@ python demo_agentability.py
 
 ## Dashboard
 
-A production React 18 SPA is included:
+React 18 SPA included:
 
 ```bash
 cd afmx/dashboard
-npm install
-npm run build       # builds to afmx/static/ — served at /afmx/ui
-npm run dev         # hot-reload dev at http://localhost:5173
+npm install && npm run build   # served at /afmx/ui
+npm run dev                    # hot-reload at localhost:5173
 ```
 
 Pages: Overview · Executions (trace/waterfall/output) · Live Stream · Run Matrix · Saved Matrices · Plugins · Audit Log · API Keys
 
 ---
 
+## Observability
+
+```python
+# Subscribe to any execution event
+@bus.subscribe(EventType.NODE_FAILED)
+async def on_fail(event):
+    await alert_team(event.execution_id, event.data["error"])
+```
+
+Prometheus metrics scraped at `GET /metrics`. WebSocket streaming at `WS /afmx/ws/stream/{id}`.
+
+---
+
 ## Docker
 
 ```bash
-# Single container
 docker build -t afmx:latest .
 docker run -p 8100:8100 --env-file .env afmx:latest
 
-# Full stack (AFMX + Redis + Prometheus)
+# Full stack: AFMX + Redis + Prometheus
 docker-compose up -d
 ```
+
+---
+
+## Documentation
+
+Full documentation in [`docs/`](docs/):
+
+| Doc | Description |
+|---|---|
+| [Architecture](docs/architecture.md) | System layers, data flow, AFMX vs Airflow / Temporal / LangGraph |
+| [Core Concepts](docs/concepts.md) | Node, Edge, Matrix, Context, Record |
+| [Quick Start](docs/quickstart.md) | 5-minute setup guide |
+| [Handlers](docs/handlers.md) | Writing and registering handlers |
+| [Matrix Design](docs/matrix_design.md) | Modes, conditions, variable resolver |
+| [API Reference](docs/api_reference.md) | All REST endpoints |
+| [Adapters](docs/adapters.md) | LangChain, LangGraph, CrewAI, OpenAI |
+| [Hooks](docs/hooks.md) | PRE/POST hooks |
+| [Observability](docs/observability.md) | EventBus, Prometheus, WebSocket, Agentability |
+| [Configuration](docs/configuration.md) | All `AFMX_` environment variables |
+| [Testing](docs/testing.md) | Running the test suite |
+| [Deployment](docs/deployment.md) | Docker, production hardening |
 
 ---
 
@@ -374,13 +256,9 @@ docker-compose up -d
 
 ```bash
 pytest                              # 290+ tests
-pytest tests/unit/ -v               # unit only
-pytest tests/integration/ -v        # integration only
+pytest tests/unit/ -v               # unit tests only
+pytest tests/integration/ -v        # integration tests only
 pytest --cov=afmx --cov-report=html # HTML coverage report
-
-python scripts/test_realtime.py     # 50+ live API assertions
-python scripts/test_ws.py           # WebSocket stream demo
-python scripts/test_load.py --concurrency 20 --total 200
 ```
 
 ---
@@ -389,44 +267,24 @@ python scripts/test_load.py --concurrency 20 --total 200
 
 | | AFMX | LangGraph |
 |---|---|---|
-| Core focus | Execution & orchestration | LLM reasoning flow |
-| Determinism | ✅ Strong — same input = same path | ❌ LLM-dependent |
-| Parallel execution | ✅ Native (PARALLEL + HYBRID) | ⚠️ Limited |
-| Tool routing | ✅ Rule-based, explicit | ⚠️ Prompt-driven |
-| Fault handling | ✅ Retry + fallback + circuit breaker | ❌ Manual |
-| Multi-agent scale | ✅ 100+ concurrent agents | ⚠️ Not proven at scale |
-| Production grade | ✅ RBAC, audit, checkpoints, Redis | ⚠️ App-layer only |
+| Determinism | ✅ Same input = same path | ❌ LLM-dependent |
+| Fault tolerance | ✅ Retry + fallback + circuit breaker | ❌ Manual |
+| Parallel execution | ✅ Native PARALLEL + HYBRID | ⚠️ Limited |
+| Production grade | ✅ RBAC, audit, checkpoints, Redis | ⚠️ App-layer |
 
-**Mental model:** AFMX = how agents **act**. LangGraph = how agents **think**. They are not competitors — AFMX can execute LangGraph graphs as nodes.
+**Mental model:** AFMX = how agents **act**. LangGraph = how agents **think**. They are complementary — AFMX can execute LangGraph graphs as nodes.
 
 ---
 
-## Documentation
+## Contributing
 
-Full documentation in [`docs/`](docs/):
-
-- [Architecture](docs/architecture.md) — layers, data flow, AFMX vs Airflow/Temporal/LangGraph
-- [Core Concepts](docs/concepts.md) — Node, Edge, Matrix, Context, Record
-- [Quick Start](docs/quickstart.md) — 5-minute setup guide
-- [Handlers](docs/handlers.md) — writing and registering handlers
-- [Matrix Design](docs/matrix_design.md) — modes, conditions, variable resolver
-- [API Reference](docs/api_reference.md) — all endpoints
-- [Adapters](docs/adapters.md) — LangChain, LangGraph, CrewAI, OpenAI
-- [Hooks](docs/hooks.md) — PRE/POST hooks
-- [Observability](docs/observability.md) — EventBus, Prometheus, WebSocket, Agentability
-- [Configuration](docs/configuration.md) — all `AFMX_` variables
-- [Testing](docs/testing.md) — running the test suite
-- [Deployment](docs/deployment.md) — Docker, Oracle Cloud, production hardening
+See [CONTRIBUTING.md](CONTRIBUTING.md). All contributions welcome.
 
 ---
 
-## Founder Note
+## License
 
-AFMX must be:
-- **Deterministic** — same input always produces the same execution path
-- **Fast** — zero AI in the core execution loop
-- **Composable** — plug in any router, dispatcher, store, or adapter
-- **Observable** — every state transition is a measurable, streamable event
-- **Fault-tolerant** — retry, fallback, circuit breaker at every node
+Apache 2.0 — see [LICENSE](LICENSE).
 
-> Do NOT make the engine intelligent. It is the execution layer — not the brain.
+Enterprise features (multi-tenancy, SSO/OIDC, cryptographic execution integrity, distributed workers, cost governance, AFMX Cloud) are available under a separate commercial license.
+See [ENTERPRISE.md](ENTERPRISE.md) or contact **enterprise@agentdyne9.com**.

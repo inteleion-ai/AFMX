@@ -1,9 +1,6 @@
 """
-AFMX — Public SDK surface
-
-FIX: Removed stale adapter class imports that shadowed the real ones
-     from afmx.adapters. Adapter classes are accessible via the
-     adapter_registry singleton or direct import from afmx.adapters.
+AFMX — Agent Flow Matrix Execution Engine
+Public SDK surface — import everything from here.
 """
 from afmx.core.engine import AFMXEngine
 from afmx.core.router import ToolRouter, RoutingRule, RoutingStrategy
@@ -45,8 +42,9 @@ from afmx.utils.helpers import (
     truncate, async_retry, Timer,
 )
 
-__version__ = "1.0.0"
-__author__ = "Agentdyne9"
+__version__ = "1.0.1"
+__author__  = "Agentdyne9"
+__license__ = "Apache-2.0"
 __python_requires__ = ">=3.10"
 
 __all__ = [
@@ -71,7 +69,7 @@ __all__ = [
     "InMemoryStateStore", "RedisStateStore",
     "InMemoryMatrixStore", "RedisMatrixStore", "StoredMatrix",
     "InMemoryCheckpointStore", "CheckpointData",
-    # Adapters (base + registry; individual adapters via afmx.adapters)
+    # Adapters
     "AFMXAdapter", "AdapterResult", "AdapterNodeConfig",
     "AdapterRegistry", "adapter_registry",
     # Exceptions

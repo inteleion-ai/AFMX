@@ -78,5 +78,13 @@ afmx/static/index.html
 *.key
 *.crt
 secrets/
+
+# ─── Internal dev artifacts — never publish
+_fix_snippet.py
+
+# ─── Internal / never publish ────────────────────────────────────────────────
+# afmx-roadmap.txt is an internal working file
 afmx-roadmap.txt
-OSS_ENTERPRISE_ANALYSIS.md
+# .env contains real secrets — never commit it (only .env.example goes to git)
+.env
+!.env.example
