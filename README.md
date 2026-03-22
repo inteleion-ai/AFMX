@@ -5,10 +5,10 @@
 AFMX is the **execution fabric for autonomous agents** — deterministic, fault-tolerant, and built like infrastructure.
 
 [![CI](https://github.com/inteleion-ai/AFMX/actions/workflows/ci.yml/badge.svg)](https://github.com/inteleion-ai/AFMX/actions/workflows/ci.yml)
-[![PyPI version](https://img.shields.io/pypi/v/afmx.svg)](https://pypi.org/project/afmx/)
+[![PyPI](https://img.shields.io/badge/pypi-afmx%201.0.1-blue)](https://pypi.org/project/afmx/)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org)
 [![License](https://img.shields.io/badge/license-Apache%202.0-green)](LICENSE)
-[![Status](https://img.shields.io/badge/status-production--stable-brightgreen)]()
+[![Docs](https://img.shields.io/badge/docs-afmx.inteleion.com-blue)](https://afmx.inteleion.com/docs)
 
 ---
 
@@ -268,4 +268,4 @@ See [CONTRIBUTING.md](CONTRIBUTING.md). All contributions welcome.
 Apache 2.0 — see [LICENSE](LICENSE).
 
 Enterprise features (multi-tenancy, SSO/OIDC, cryptographic execution integrity, distributed workers, cost governance, AFMX Cloud) available under a separate commercial license.
-See [ENTERPRISE.md](ENTERPRISE.md) or contact **enterprise@agentdyne9.com**.
+See [ENTERPRISE.md](ENTERPRISE.md) or contact **support@inteleion.com**.

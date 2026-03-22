@@ -26,4 +26,4 @@ Use [Conventional Commits](https://www.conventionalcommits.org/):
 - [ ] `ruff check afmx/` passes
 - [ ] CHANGELOG.md updated under `[Unreleased]`
 
-Questions: open a [Discussion](https://github.com/inteleion-ai/AFMX/discussions) or email **hello@agentdyne9.com**.
+Questions: open a [Discussion](https://github.com/inteleion-ai/AFMX/discussions) or email **support@inteleion.com**.
