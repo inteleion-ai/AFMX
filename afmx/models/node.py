@@ -2,10 +2,12 @@
 AFMX Node Model
 """
 from __future__ import annotations
+
+import uuid
 from enum import Enum
 from typing import Any, Dict, List, Optional
+
 from pydantic import BaseModel, ConfigDict, Field, field_validator
-import uuid
 
 
 class NodeType(str, Enum):

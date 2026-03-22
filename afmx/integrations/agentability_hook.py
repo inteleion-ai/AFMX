@@ -79,7 +79,7 @@ logger = logging.getLogger(__name__)
 # integration is silently disabled so AFMX keeps working normally.
 
 try:
-    from agentability import Tracer, DecisionType
+    from agentability import DecisionType, Tracer
     from agentability.models import ConflictType
     _AGENTABILITY_AVAILABLE = True
 except ImportError:

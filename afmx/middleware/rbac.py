@@ -34,8 +34,8 @@ from fastapi import Request, Response
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from afmx.auth.rbac import Principal, get_required_permission, PUBLIC_PATHS
-from afmx.audit.model import AuditEvent, AuditAction
+from afmx.audit.model import AuditAction, AuditEvent
+from afmx.auth.rbac import PUBLIC_PATHS, Principal, get_required_permission
 
 logger = logging.getLogger(__name__)
 

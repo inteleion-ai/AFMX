@@ -8,6 +8,7 @@ Endpoints:
     POST /afmx/adapters/register — register an adapter by class name (dev/debug)
 """
 from __future__ import annotations
+
 import logging
 from typing import Any, Dict, List
 

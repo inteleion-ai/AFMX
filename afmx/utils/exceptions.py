@@ -3,6 +3,7 @@ AFMX Custom Exceptions
 Structured exception hierarchy for clean error propagation.
 """
 from __future__ import annotations
+
 from typing import Any, Dict, Optional
 
 

@@ -6,9 +6,10 @@ FIX 2: NodeResultResponse now includes started_at and finished_at so the UI
         waterfall timeline can render accurate per-node Gantt bars.
 """
 from __future__ import annotations
-from typing import Any, Dict, List, Optional
-from pydantic import BaseModel, ConfigDict, Field
 
+from typing import Any, Dict, List, Optional
+
+from pydantic import BaseModel, ConfigDict, Field
 
 # ─── Request Schemas ──────────────────────────────────────────────────────────
 

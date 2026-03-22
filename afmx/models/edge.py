@@ -6,10 +6,12 @@ FIX: Replaced deprecated Pydantic v1 `class Config` with
      `model_config = ConfigDict(populate_by_name=True)`.
 """
 from __future__ import annotations
+
+import uuid
 from enum import Enum
 from typing import Any, Dict, Optional
+
 from pydantic import BaseModel, ConfigDict, Field
-import uuid
 
 
 class EdgeConditionType(str, Enum):

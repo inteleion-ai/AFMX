@@ -6,11 +6,12 @@ FIX: Guard against duplicate metric registration across test runs by
      catching ValueError from prometheus_client.
 """
 from __future__ import annotations
+
 import logging
 from typing import Optional
 
 try:
-    from prometheus_client import Counter, Gauge, Histogram, REGISTRY
+    from prometheus_client import REGISTRY, Counter, Gauge, Histogram
     PROMETHEUS_AVAILABLE = True
 except ImportError:
     PROMETHEUS_AVAILABLE = False

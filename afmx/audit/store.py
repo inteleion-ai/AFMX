@@ -32,7 +32,7 @@ import logging
 import time
 from typing import Any, Dict, List, Optional
 
-from afmx.audit.model import AuditEvent, AuditAction
+from afmx.audit.model import AuditAction, AuditEvent
 
 logger = logging.getLogger(__name__)
 

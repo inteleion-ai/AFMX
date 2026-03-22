@@ -5,13 +5,15 @@ FIX: topological_order() sort key used get_node_by_id() which is O(n) per call,
      making the overall sort O(n² log n). Replaced with a pre-built priority dict.
 """
 from __future__ import annotations
+
+import uuid
 from enum import Enum
 from typing import Any, Dict, List, Optional, Set
-from pydantic import BaseModel, ConfigDict, Field, model_validator
-import uuid
 
-from afmx.models.node import Node
+from pydantic import BaseModel, ConfigDict, Field, model_validator
+
 from afmx.models.edge import Edge
+from afmx.models.node import Node
 
 
 class ExecutionMode(str, Enum):

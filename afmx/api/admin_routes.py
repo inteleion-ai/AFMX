@@ -10,7 +10,7 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel, Field
 
-from afmx.auth.rbac import APIKey, Role, ROLE_PERMISSIONS
+from afmx.auth.rbac import ROLE_PERMISSIONS, APIKey, Role
 
 logger = logging.getLogger(__name__)
 
@@ -62,7 +62,7 @@ async def create_key(
     await store.create(key)
 
     try:
-        from afmx.audit.model import AuditEvent, AuditAction
+        from afmx.audit.model import AuditAction, AuditEvent
         await audit.append(AuditEvent(
             action=AuditAction.KEY_CREATED,
             actor=caller_name,
@@ -117,7 +117,7 @@ async def revoke_key(
     if not ok:
         raise HTTPException(status_code=404, detail=f"Key '{key_id}' not found")
     try:
-        from afmx.audit.model import AuditEvent, AuditAction
+        from afmx.audit.model import AuditAction, AuditEvent
         await audit.append(AuditEvent(
             action=AuditAction.KEY_REVOKED,
             actor=principal.key_name if principal else "system",
@@ -142,7 +142,7 @@ async def delete_key(
     if not ok:
         raise HTTPException(status_code=404, detail=f"Key '{key_id}' not found")
     try:
-        from afmx.audit.model import AuditEvent, AuditAction
+        from afmx.audit.model import AuditAction, AuditEvent
         await audit.append(AuditEvent(
             action=AuditAction.KEY_DELETED,
             actor=principal.key_name if principal else "system",
@@ -157,8 +157,8 @@ async def delete_key(
 
 @admin_router.get("/admin/stats", summary="System statistics", tags=["Admin"])
 async def admin_stats(store=Depends(get_api_key_store)):
-    from afmx.main import afmx_app
     from afmx.config import settings
+    from afmx.main import afmx_app
 
     state_count = 0
     try:

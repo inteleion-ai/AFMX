@@ -59,15 +59,15 @@ _EnvBase = None
 _DotEnvBase = None
 
 try:                                                            # ≥ 2.3 layout
-    from pydantic_settings.sources.providers.env import EnvSettingsSource as _EnvBase
     from pydantic_settings.sources.providers.dotenv import DotEnvSettingsSource as _DotEnvBase
+    from pydantic_settings.sources.providers.env import EnvSettingsSource as _EnvBase
 except ImportError:
     pass
 
 if _EnvBase is None or _DotEnvBase is None:
     try:                                                        # < 2.3 layout
-        from pydantic_settings import EnvSettingsSource as _EnvBase       # type: ignore
         from pydantic_settings import DotEnvSettingsSource as _DotEnvBase  # type: ignore
+        from pydantic_settings import EnvSettingsSource as _EnvBase  # type: ignore
     except ImportError:
         pass
 

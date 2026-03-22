@@ -49,7 +49,7 @@ import time
 import uuid
 from typing import Any, Callable, Dict, List, Optional, get_type_hints
 
-from afmx.adapters.base import AFMXAdapter, AdapterResult
+from afmx.adapters.base import AdapterResult, AFMXAdapter
 from afmx.core.executor import HandlerRegistry
 from afmx.models.node import Node, NodeType, RetryPolicy, TimeoutPolicy
 

@@ -6,6 +6,7 @@ Fix: asyncio.Lock() is now created lazily on first use, not in __init__.
      Creating asyncio primitives outside a running event loop raises on Python 3.12+.
 """
 from __future__ import annotations
+
 import asyncio
 import json
 import logging

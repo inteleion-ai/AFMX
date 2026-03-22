@@ -34,12 +34,12 @@ Quick start:
         def name(self): return "my_framework"
         ...
 """
-from afmx.adapters.base import AFMXAdapter, AdapterResult, AdapterNodeConfig
-from afmx.adapters.registry import AdapterRegistry, adapter_registry
+from afmx.adapters.base import AdapterNodeConfig, AdapterResult, AFMXAdapter
+from afmx.adapters.crewai import CrewAIAdapter
 from afmx.adapters.langchain import LangChainAdapter
 from afmx.adapters.langgraph import LangGraphAdapter
-from afmx.adapters.crewai import CrewAIAdapter
 from afmx.adapters.openai import OpenAIAdapter
+from afmx.adapters.registry import AdapterRegistry, adapter_registry
 
 __all__ = [
     # Base contract

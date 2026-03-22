@@ -5,6 +5,7 @@ FIX: execute_named_matrix now uses the ConcurrencyManager (was missing).
 FIX: SaveMatrixRequest uses ConfigDict instead of deprecated Pydantic v1 class Config.
 """
 from __future__ import annotations
+
 import logging
 from typing import Any, Dict, List, Optional
 

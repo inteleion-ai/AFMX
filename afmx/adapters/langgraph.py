@@ -40,11 +40,11 @@ from __future__ import annotations
 import logging
 from typing import Any, Dict, List, Optional
 
-from afmx.adapters.base import AFMXAdapter, AdapterResult
+from afmx.adapters.base import AdapterResult, AFMXAdapter
 from afmx.core.executor import HandlerRegistry
 from afmx.models.edge import Edge, EdgeCondition, EdgeConditionType
-from afmx.models.matrix import ExecutionMatrix, ExecutionMode, AbortPolicy
-from afmx.models.node import Node, NodeType, RetryPolicy, TimeoutPolicy, NodeConfig
+from afmx.models.matrix import AbortPolicy, ExecutionMatrix, ExecutionMode
+from afmx.models.node import Node, NodeConfig, NodeType, RetryPolicy, TimeoutPolicy
 
 logger = logging.getLogger(__name__)
 

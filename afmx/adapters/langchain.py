@@ -31,9 +31,9 @@ from __future__ import annotations
 import logging
 from typing import Any, Callable, Dict, Optional
 
-from afmx.adapters.base import AFMXAdapter, AdapterResult, AdapterNodeConfig
+from afmx.adapters.base import AdapterNodeConfig, AdapterResult, AFMXAdapter
 from afmx.core.executor import HandlerRegistry
-from afmx.models.node import Node, NodeType, RetryPolicy, TimeoutPolicy, NodeConfig
+from afmx.models.node import Node, NodeConfig, NodeType, RetryPolicy, TimeoutPolicy
 
 logger = logging.getLogger(__name__)
 

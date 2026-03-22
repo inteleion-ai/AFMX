@@ -1,11 +1,13 @@
 """
 AFMX store package — updated with checkpoint and matrix store
 """
-from afmx.store.state_store import InMemoryStateStore, RedisStateStore
-from afmx.store.matrix_store import InMemoryMatrixStore, RedisMatrixStore, StoredMatrix
 from afmx.store.checkpoint import (
-    InMemoryCheckpointStore, RedisCheckpointStore, CheckpointData,
+    CheckpointData,
+    InMemoryCheckpointStore,
+    RedisCheckpointStore,
 )
+from afmx.store.matrix_store import InMemoryMatrixStore, RedisMatrixStore, StoredMatrix
+from afmx.store.state_store import InMemoryStateStore, RedisStateStore
 
 __all__ = [
     "InMemoryStateStore", "RedisStateStore",

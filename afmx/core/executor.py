@@ -6,6 +6,7 @@ Fixes applied:
   - hooks receive matrix_id and matrix_name via context.metadata
 """
 from __future__ import annotations
+
 import asyncio
 import importlib
 import logging

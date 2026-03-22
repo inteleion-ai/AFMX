@@ -14,6 +14,7 @@ Endpoints:
   POST /afmx/resume/{id}       — resume from last checkpoint
 """
 from __future__ import annotations
+
 import asyncio
 import logging
 from typing import Any, Dict, List, Optional
@@ -26,9 +27,9 @@ from afmx.api.schemas import (
     ExecutionResponse,
     ExecutionStatusResponse,
     NodeResultResponse,
+    PluginListResponse,
     ValidateRequest,
     ValidateResponse,
-    PluginListResponse,
 )
 from afmx.models.execution import ExecutionContext, ExecutionRecord, ExecutionStatus
 from afmx.models.matrix import ExecutionMatrix
@@ -507,7 +508,7 @@ async def _audit_execution(
     if audit_store is None:
         return
     try:
-        from afmx.audit.model import AuditEvent, AuditAction
+        from afmx.audit.model import AuditAction, AuditEvent
         principal = getattr(request.state, "principal", None)
         event = AuditEvent(
             action=AuditAction(action_str),

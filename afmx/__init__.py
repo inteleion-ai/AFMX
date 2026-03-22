@@ -2,44 +2,54 @@
 AFMX — Agent Flow Matrix Execution Engine
 Public SDK surface — import everything from here.
 """
-from afmx.core.engine import AFMXEngine
-from afmx.core.router import ToolRouter, RoutingRule, RoutingStrategy
-from afmx.core.dispatcher import AgentDispatcher, DispatchRequest, AgentTier, DispatchPolicy
-from afmx.core.executor import HandlerRegistry
-from afmx.core.retry import RetryManager
-from afmx.core.hooks import HookRegistry, HookPayload, HookType, default_hooks
-from afmx.core.concurrency import ConcurrencyManager
-from afmx.core.variable_resolver import VariableResolver
-
-from afmx.models.node import (
-    Node, NodeType, NodeStatus, NodeResult,
-    RetryPolicy, TimeoutPolicy, CircuitBreakerPolicy, NodeConfig,
-)
-from afmx.models.edge import Edge, EdgeCondition, EdgeConditionType
-from afmx.models.matrix import ExecutionMatrix, ExecutionMode, AbortPolicy
-from afmx.models.execution import ExecutionContext, ExecutionRecord, ExecutionStatus
-
-from afmx.plugins.registry import PluginRegistry, default_registry
-
-from afmx.observability.events import EventBus, AFMXEvent, EventType, LoggingEventHandler
-from afmx.observability.metrics import AFMXMetrics
-
-from afmx.store.state_store import InMemoryStateStore, RedisStateStore
-from afmx.store.matrix_store import InMemoryMatrixStore, RedisMatrixStore, StoredMatrix
-from afmx.store.checkpoint import InMemoryCheckpointStore, CheckpointData
-
-from afmx.adapters.base import AFMXAdapter, AdapterResult, AdapterNodeConfig
+from afmx.adapters.base import AdapterNodeConfig, AdapterResult, AFMXAdapter
 from afmx.adapters.registry import AdapterRegistry, adapter_registry
-
+from afmx.core.concurrency import ConcurrencyManager
+from afmx.core.dispatcher import AgentDispatcher, AgentTier, DispatchPolicy, DispatchRequest
+from afmx.core.engine import AFMXEngine
+from afmx.core.executor import HandlerRegistry
+from afmx.core.hooks import HookPayload, HookRegistry, HookType, default_hooks
+from afmx.core.retry import RetryManager
+from afmx.core.router import RoutingRule, RoutingStrategy, ToolRouter
+from afmx.core.variable_resolver import VariableResolver
+from afmx.models.edge import Edge, EdgeCondition, EdgeConditionType
+from afmx.models.execution import ExecutionContext, ExecutionRecord, ExecutionStatus
+from afmx.models.matrix import AbortPolicy, ExecutionMatrix, ExecutionMode
+from afmx.models.node import (
+    CircuitBreakerPolicy,
+    Node,
+    NodeConfig,
+    NodeResult,
+    NodeStatus,
+    NodeType,
+    RetryPolicy,
+    TimeoutPolicy,
+)
+from afmx.observability.events import AFMXEvent, EventBus, EventType, LoggingEventHandler
+from afmx.observability.metrics import AFMXMetrics
+from afmx.plugins.registry import PluginRegistry, default_registry
+from afmx.store.checkpoint import CheckpointData, InMemoryCheckpointStore
+from afmx.store.matrix_store import InMemoryMatrixStore, RedisMatrixStore, StoredMatrix
+from afmx.store.state_store import InMemoryStateStore, RedisStateStore
 from afmx.utils.exceptions import (
-    AFMXException, MatrixValidationError, MatrixCycleError,
-    ExecutionTimeoutError, HandlerNotFoundError,
-    ToolRoutingError, AgentDispatchError,
+    AFMXException,
+    AgentDispatchError,
+    ExecutionTimeoutError,
+    HandlerNotFoundError,
+    MatrixCycleError,
+    MatrixValidationError,
+    ToolRoutingError,
 )
 from afmx.utils.helpers import (
-    generate_id, now_ms, elapsed_ms,
-    deep_merge, resolve_dotted_path, hash_matrix,
-    truncate, async_retry, Timer,
+    Timer,
+    async_retry,
+    deep_merge,
+    elapsed_ms,
+    generate_id,
+    hash_matrix,
+    now_ms,
+    resolve_dotted_path,
+    truncate,
 )
 
 __version__ = "1.0.1"

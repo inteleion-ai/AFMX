@@ -5,8 +5,9 @@ Fixes:
   - input path: digs correctly into rest when root == "input" and rest is non-empty
 """
 from __future__ import annotations
-import re
+
 import logging
+import re
 from typing import Any, Dict, List
 
 from afmx.models.execution import ExecutionContext

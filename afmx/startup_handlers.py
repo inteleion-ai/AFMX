@@ -16,6 +16,7 @@ Handler signature (always this exact shape):
         return {"result": "your output here"}   # anything JSON-serializable
 """
 from __future__ import annotations
+
 import asyncio
 import logging
 
@@ -247,7 +248,9 @@ register_all()
 # stubs with versions that produce real confidence scores, reasoning chains,
 # token usage, and constraint checking — making both dashboards meaningful.
 try:
-    import importlib, sys, os
+    import importlib
+    import os
+    import sys
     _root = os.path.dirname(os.path.dirname(__file__))  # project root
     if _root not in sys.path:
         sys.path.insert(0, _root)

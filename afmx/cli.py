@@ -13,15 +13,15 @@ Usage:
     python -m afmx.cli health
 """
 from __future__ import annotations
+
 import argparse
 import asyncio
 import json
-import sys
 import os
+import sys
 import time
-from typing import Any, Dict, Optional
 from pathlib import Path
-
+from typing import Any, Dict, Optional
 
 # ─── HTTP Client ──────────────────────────────────────────────────────────────
 

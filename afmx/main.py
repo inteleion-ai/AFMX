@@ -27,12 +27,23 @@ from contextlib import asynccontextmanager
 from typing import Optional, Union
 
 from fastapi import FastAPI, Request, status
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
-from fastapi.exceptions import RequestValidationError
 
+from afmx.adapters.registry import AdapterRegistry, adapter_registry
+from afmx.api.adapter_routes import adapter_router
+from afmx.api.admin_routes import admin_router
+from afmx.api.audit_routes import audit_router
+from afmx.api.matrix_routes import matrix_router
+from afmx.api.routes import router as afmx_router
+from afmx.api.websocket import stream_manager, ws_router
+from afmx.audit.model import AuditAction, AuditEvent
+from afmx.audit.store import InMemoryAuditStore, RedisAuditStore
+from afmx.auth.rbac import APIKey, Role
+from afmx.auth.store import InMemoryAPIKeyStore, RedisAPIKeyStore
 from afmx.config import settings
 from afmx.core.concurrency import ConcurrencyManager
 from afmx.core.dispatcher import AgentDispatcher
@@ -52,17 +63,6 @@ from afmx.store.checkpoint import InMemoryCheckpointStore, RedisCheckpointStore
 from afmx.store.matrix_store import InMemoryMatrixStore, RedisMatrixStore
 from afmx.store.state_store import InMemoryStateStore, RedisStateStore
 from afmx.utils.exceptions import AFMXException
-from afmx.adapters.registry import AdapterRegistry, adapter_registry
-from afmx.api.routes import router as afmx_router
-from afmx.api.matrix_routes import matrix_router
-from afmx.api.websocket import ws_router, stream_manager
-from afmx.api.adapter_routes import adapter_router
-from afmx.api.admin_routes import admin_router
-from afmx.api.audit_routes import audit_router
-from afmx.auth.rbac import APIKey, Role
-from afmx.auth.store import InMemoryAPIKeyStore, RedisAPIKeyStore
-from afmx.audit.store import InMemoryAuditStore, RedisAuditStore
-from afmx.audit.model import AuditEvent, AuditAction
 
 logging.basicConfig(
     level=getattr(logging, settings.LOG_LEVEL),
@@ -310,8 +310,8 @@ def create_app() -> FastAPI:
 
     if settings.PROMETHEUS_ENABLED:
         try:
-            from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
             from fastapi.responses import Response as FResponse
+            from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 
             @app.get("/metrics", include_in_schema=False)
             async def prometheus_metrics():

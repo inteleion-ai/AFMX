@@ -4,6 +4,7 @@ Central registry for all handlers (tools, agents, functions).
 Supports decorator-based registration and runtime discovery.
 """
 from __future__ import annotations
+
 import logging
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional

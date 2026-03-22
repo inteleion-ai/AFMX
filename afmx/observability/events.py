@@ -4,6 +4,7 @@ Structured event emission for every state transition in AFMX.
 Pluggable: log, push to Redis pub/sub, Prometheus, Webhook, etc.
 """
 from __future__ import annotations
+
 import asyncio
 import logging
 import time

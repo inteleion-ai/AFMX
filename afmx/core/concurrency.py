@@ -6,6 +6,7 @@ FIX: asyncio.Semaphore and asyncio.Lock are created lazily on first use,
      is deprecated in Python 3.10+ and raises in 3.12+.
 """
 from __future__ import annotations
+
 import asyncio
 import logging
 import time

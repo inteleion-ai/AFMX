@@ -2,9 +2,10 @@
 AFMX Middleware — API Key Auth (optional)
 """
 from __future__ import annotations
+
 import logging
 
-from fastapi import Request, Response, HTTPException, status
+from fastapi import HTTPException, Request, Response, status
 from starlette.middleware.base import BaseHTTPMiddleware
 
 logger = logging.getLogger(__name__)

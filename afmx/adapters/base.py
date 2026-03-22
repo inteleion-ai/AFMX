@@ -17,7 +17,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional
 
-from afmx.models.node import Node, NodeType, RetryPolicy, TimeoutPolicy, NodeConfig
+from afmx.models.node import Node, NodeConfig, NodeType, RetryPolicy, TimeoutPolicy
 
 logger = logging.getLogger(__name__)
 

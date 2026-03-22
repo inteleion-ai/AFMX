@@ -2,14 +2,15 @@
 AFMX Tool Router — deterministic, policy-driven tool selection.
 """
 from __future__ import annotations
+
 import logging
 import re
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional
 
 # FIX: `typing.Pattern` was removed in Python 3.12. Use `re.Pattern` instead.
 from re import Pattern
+from typing import Any, Callable, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 

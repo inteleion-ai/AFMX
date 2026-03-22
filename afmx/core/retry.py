@@ -8,6 +8,7 @@ Fixes applied in this version:
     (previously these events existed in Prometheus subscriber but were never fired)
 """
 from __future__ import annotations
+
 import asyncio
 import logging
 import random

@@ -1,10 +1,19 @@
 """
 AFMX models package
 """
-from afmx.models.node import Node, NodeType, NodeStatus, NodeResult, RetryPolicy, TimeoutPolicy, CircuitBreakerPolicy, NodeConfig
 from afmx.models.edge import Edge, EdgeCondition, EdgeConditionType
-from afmx.models.matrix import ExecutionMatrix, ExecutionMode, AbortPolicy
 from afmx.models.execution import ExecutionContext, ExecutionRecord, ExecutionStatus
+from afmx.models.matrix import AbortPolicy, ExecutionMatrix, ExecutionMode
+from afmx.models.node import (
+    CircuitBreakerPolicy,
+    Node,
+    NodeConfig,
+    NodeResult,
+    NodeStatus,
+    NodeType,
+    RetryPolicy,
+    TimeoutPolicy,
+)
 
 __all__ = [
     "Node", "NodeType", "NodeStatus", "NodeResult",

@@ -12,18 +12,19 @@ Fixes applied in this version:
     NodeStatus.FALLBACK so the sequential loop knows it already ran.
 """
 from __future__ import annotations
+
 import asyncio
 import logging
 from typing import Any, Callable, Dict, List, Optional, Set
 
 from afmx.core.dispatcher import AgentDispatcher, AgentRegistration, DispatchRequest
-from afmx.core.executor import NodeExecutor, HandlerRegistry
+from afmx.core.executor import HandlerRegistry, NodeExecutor
 from afmx.core.retry import RetryManager
 from afmx.core.router import ToolRouter
 from afmx.models.execution import ExecutionContext, ExecutionRecord, ExecutionStatus
 from afmx.models.matrix import AbortPolicy, ExecutionMatrix, ExecutionMode
 from afmx.models.node import Node, NodeResult, NodeStatus, NodeType
-from afmx.observability.events import EventBus, AFMXEvent, EventType
+from afmx.observability.events import AFMXEvent, EventBus, EventType
 
 logger = logging.getLogger(__name__)
 
