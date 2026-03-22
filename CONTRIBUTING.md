@@ -12,9 +12,9 @@ pip install -e ".[dev]"
 
 ## Workflow
 ```bash
-pytest tests/ -v          # run tests
-ruff check afmx/          # lint
-black afmx/ tests/        # format
+pytest tests/ -v        # run tests
+ruff check afmx/        # lint
+black afmx/ tests/      # format
 ```
 
 ## Commit style
@@ -22,8 +22,8 @@ Use [Conventional Commits](https://www.conventionalcommits.org/):
 `feat(engine):`, `fix(retry):`, `docs(quickstart):`, `test(executor):`
 
 ## PR checklist
-- [ ] Tests pass
-- [ ] Ruff passes
-- [ ] CHANGELOG.md updated
+- [ ] `pytest tests/` passes
+- [ ] `ruff check afmx/` passes
+- [ ] CHANGELOG.md updated under `[Unreleased]`
 
-Questions: **hello@agentdyne9.com** or open a [Discussion](https://github.com/inteleion-ai/AFMX/discussions).
+Questions: open a [Discussion](https://github.com/inteleion-ai/AFMX/discussions) or email **hello@agentdyne9.com**.

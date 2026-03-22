@@ -10,6 +10,7 @@ labels: bug
 ## To Reproduce
 ```python
 from afmx import AFMXEngine, ExecutionMatrix
+# minimal reproduction
 ```
 
 ## Expected behaviour
@@ -17,6 +18,6 @@ from afmx import AFMXEngine, ExecutionMatrix
 ## Actual behaviour
 
 ## Environment
-- AFMX version: (run `python -c "import afmx; print(afmx.__version__)"`)
+- AFMX version: (`python -c "import afmx; print(afmx.__version__)"`)
 - Python version:
 - OS:

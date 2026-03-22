@@ -16,7 +16,6 @@ AFMX is the **execution fabric for autonomous agents** — deterministic, fault-
 
 AFMX is a **production-grade, deterministic execution fabric for autonomous agents**.
 It is not an agent reasoning framework — it is the layer that controls *how* agents act reliably in production.
-
 ```
 Your Agent Logic  (LangChain / LangGraph / CrewAI / OpenAI / custom Python)
         ↓
@@ -31,30 +30,26 @@ Deterministic execution:
 ---
 
 ## Install
-
 ```bash
 pip install afmx
 ```
 
-Or install with extras:
-
+With extras:
 ```bash
 pip install "afmx[redis,metrics]"    # Redis store + Prometheus
-pip install "afmx[full]"             # everything except adapter frameworks
+pip install "afmx[full]"             # everything except framework adapters
 pip install "afmx[dev]"              # development + testing toolchain
 ```
 
 ---
 
 ## Quick Start
-
 ```bash
 python3.10 -m afmx serve --reload
 # API:       http://localhost:8100
 # Docs:      http://localhost:8100/docs
 # Dashboard: http://localhost:8100/afmx/ui
 ```
-
 ```bash
 curl -s -X POST http://localhost:8100/afmx/execute \
   -H "Content-Type: application/json" \
@@ -76,8 +71,7 @@ curl -s -X POST http://localhost:8100/afmx/execute \
   }' | python3 -m json.tool
 ```
 
-### Run the live demo (7 multi-agent scenarios)
-
+### Live demo — 7 multi-agent scenarios
 ```bash
 pip install httpx
 python demo_multiagent.py --scenario all
@@ -107,18 +101,7 @@ python demo_multiagent.py --scenario all
 
 ---
 
-## Execution Modes
-
-| Mode | Behaviour |
-|---|---|
-| `SEQUENTIAL` | Topological order, one node at a time, conditional edge evaluation |
-| `PARALLEL` | All nodes fire concurrently under semaphore cap |
-| `HYBRID` | DAG level-sets — same-level nodes run in parallel, levels are sequential |
-
----
-
 ## Fault Tolerance
-
 ```python
 from afmx import Node, RetryPolicy, CircuitBreakerPolicy, TimeoutPolicy
 
@@ -143,9 +126,6 @@ Node(
 ---
 
 ## Framework Adapters
-
-Built-in adapters for LangChain, LangGraph, CrewAI, and OpenAI — all lazy-loaded.
-
 ```python
 from afmx.adapters.langchain import LangChainAdapter
 from langchain.tools import DuckDuckGoSearchRun
@@ -154,22 +134,21 @@ adapter = LangChainAdapter()
 node = adapter.to_afmx_node(DuckDuckGoSearchRun(), node_id="search")
 ```
 
+Built-in adapters: LangChain · LangGraph · CrewAI · OpenAI — all lazy-loaded.
+
 ---
 
 ## Registering Handlers
-
 ```python
 from afmx.plugins import default_registry
 
 @default_registry.agent("my_analyst")
 async def analyst(node_input: dict, context, node) -> dict:
-    topic = node_input["input"].get("topic", "")
-    return {"analysis": f"Analysis of: {topic}", "confidence": 0.87}
+    return {"analysis": "...", "confidence": 0.87}
 
 @default_registry.tool("web_search")
 async def search(node_input: dict, context, node) -> dict:
-    query = node_input["params"].get("query") or node_input["input"]
-    return {"results": await run_search(query)}
+    return {"results": await run_search(node_input["input"])}
 ```
 
 ---
@@ -193,34 +172,39 @@ async def search(node_input: dict, context, node) -> dict:
 ---
 
 ## Dashboard
-
-React 18 SPA included:
-
 ```bash
 cd afmx/dashboard
 npm install && npm run build   # served at /afmx/ui
 npm run dev                    # hot-reload at localhost:5173
 ```
 
-Pages: Overview · Executions (trace/waterfall/output) · Live Stream · Run Matrix · Saved Matrices · Plugins · Audit Log · API Keys
+Pages: Overview · Executions · Live Stream · Run Matrix · Saved Matrices · Plugins · Audit Log · API Keys
 
 ---
 
 ## Observability
-
 ```python
-# Subscribe to any execution event
 @bus.subscribe(EventType.NODE_FAILED)
 async def on_fail(event):
     await alert_team(event.execution_id, event.data["error"])
 ```
 
-Prometheus metrics scraped at `GET /metrics`. WebSocket streaming at `WS /afmx/ws/stream/{id}`.
+Prometheus metrics at `GET /metrics`. WebSocket streaming at `WS /afmx/ws/stream/{id}`.
+
+---
+
+## Agentability Integration
+
+AFMX integrates with [Agentability](https://github.com/inteleion-ai/Agentability) — captures confidence scores, reasoning chains, token costs, and conflict detection per node execution.
+```bash
+AFMX_AGENTABILITY_ENABLED=true
+AFMX_AGENTABILITY_DB_PATH=agentability.db
+python demo_agentability.py
+```
 
 ---
 
 ## Docker
-
 ```bash
 docker build -t afmx:latest .
 docker run -p 8100:8100 --env-file .env afmx:latest
@@ -231,35 +215,32 @@ docker-compose up -d
 
 ---
 
-## Documentation
+## Testing
+```bash
+pytest                              # 290+ tests
+pytest tests/unit/ -v               # unit only
+pytest tests/integration/ -v        # integration only
+pytest --cov=afmx --cov-report=html # coverage report
+```
 
-Full documentation in [`docs/`](docs/):
+---
+
+## Documentation
 
 | Doc | Description |
 |---|---|
-| [Architecture](docs/architecture.md) | System layers, data flow, AFMX vs Airflow / Temporal / LangGraph |
+| [Architecture](docs/architecture.md) | Layers, data flow, AFMX vs Airflow/Temporal/LangGraph |
 | [Core Concepts](docs/concepts.md) | Node, Edge, Matrix, Context, Record |
 | [Quick Start](docs/quickstart.md) | 5-minute setup guide |
 | [Handlers](docs/handlers.md) | Writing and registering handlers |
-| [Matrix Design](docs/matrix_design.md) | Modes, conditions, variable resolver |
+| [Matrix Design](docs/matrix_design.md) | Modes, edge conditions, variable resolver |
 | [API Reference](docs/api_reference.md) | All REST endpoints |
 | [Adapters](docs/adapters.md) | LangChain, LangGraph, CrewAI, OpenAI |
 | [Hooks](docs/hooks.md) | PRE/POST hooks |
 | [Observability](docs/observability.md) | EventBus, Prometheus, WebSocket, Agentability |
 | [Configuration](docs/configuration.md) | All `AFMX_` environment variables |
 | [Testing](docs/testing.md) | Running the test suite |
-| [Deployment](docs/deployment.md) | Docker, production hardening |
-
----
-
-## Testing
-
-```bash
-pytest                              # 290+ tests
-pytest tests/unit/ -v               # unit tests only
-pytest tests/integration/ -v        # integration tests only
-pytest --cov=afmx --cov-report=html # HTML coverage report
-```
+| [Deployment](docs/deployment.md) | Docker, Oracle Cloud, production hardening |
 
 ---
 
@@ -286,5 +267,5 @@ See [CONTRIBUTING.md](CONTRIBUTING.md). All contributions welcome.
 
 Apache 2.0 — see [LICENSE](LICENSE).
 
-Enterprise features (multi-tenancy, SSO/OIDC, cryptographic execution integrity, distributed workers, cost governance, AFMX Cloud) are available under a separate commercial license.
+Enterprise features (multi-tenancy, SSO/OIDC, cryptographic execution integrity, distributed workers, cost governance, AFMX Cloud) available under a separate commercial license.
 See [ENTERPRISE.md](ENTERPRISE.md) or contact **enterprise@agentdyne9.com**.
