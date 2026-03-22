@@ -12,26 +12,14 @@
 
 Email: **security@agentdyne9.com**
 
-Include:
-- Description of the vulnerability
-- Steps to reproduce
-- Potential impact
-- Your suggested fix (optional)
+Include: description, steps to reproduce, potential impact, suggested fix (optional).
 
-We will acknowledge receipt within 48 hours and aim to release a fix within 14 days for critical issues.
+We acknowledge within 48 hours and aim to release a fix within 14 days for critical issues.
 
 ## Scope
 
-In scope:
-- Remote code execution via the API
-- Authentication bypass (RBAC/API key validation)
-- Injection vulnerabilities in matrix execution
-- Sensitive data exposure in API responses
+In scope: RCE via the API, authentication bypass, injection vulnerabilities, sensitive data exposure.
 
-Out of scope:
-- Vulnerabilities in optional dependencies (report to those projects directly)
-- Denial of service via concurrency cap exhaustion (this is a configuration matter)
+## Disclosure
 
-## Disclosure Policy
-
-We follow coordinated disclosure. Please give us reasonable time to fix before public disclosure. We will credit reporters in the release notes unless you prefer to remain anonymous.
+We follow coordinated disclosure. We will credit reporters in release notes unless you prefer anonymity.

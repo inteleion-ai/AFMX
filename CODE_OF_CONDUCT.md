@@ -2,25 +2,18 @@
 
 ## Our Pledge
 
-We are committed to making participation in this project a welcoming experience for everyone, regardless of age, body size, disability, ethnicity, gender identity, level of experience, nationality, personal appearance, race, religion, or sexual identity.
+We are committed to making participation in this project a welcoming experience for everyone.
 
 ## Our Standards
 
-**Encouraged behaviour:**
-- Using welcoming and inclusive language
-- Respecting differing viewpoints and experiences
-- Gracefully accepting constructive criticism
-- Focusing on what is best for the community
+Encouraged: inclusive language, respecting differing viewpoints, graceful acceptance of constructive criticism.
 
-**Unacceptable behaviour:**
-- Harassment, insults, or personal attacks
-- Publishing private information without permission
-- Trolling or deliberately disruptive conduct
+Not acceptable: harassment, personal attacks, publishing private information without permission.
 
 ## Enforcement
 
-Instances of unacceptable behaviour may be reported to **hello@agentdyne9.com**. All reports will be reviewed and investigated promptly and fairly.
+Report issues to **hello@agentdyne9.com**. All reports will be reviewed promptly and fairly.
 
 ## Attribution
 
-This Code of Conduct is adapted from the [Contributor Covenant](https://www.contributor-covenant.org/), version 2.1.
+Adapted from the [Contributor Covenant](https://www.contributor-covenant.org/), version 2.1.

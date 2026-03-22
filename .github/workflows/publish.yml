@@ -5,33 +5,22 @@ on:
     types: [published]
 
 permissions:
-  id-token: write   # required for OIDC trusted publisher
+  id-token: write
 
 jobs:
   build:
     name: Build distribution
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
           cache: pip
-
-      - name: Install build tools
-        run: pip install build twine
-
-      - name: Build wheel and sdist
-        run: python -m build
-
-      - name: Check distribution
-        run: twine check dist/*
-
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
+      - run: pip install build twine
+      - run: python -m build
+      - run: twine check dist/*
+      - uses: actions/upload-artifact@v4
         with:
           name: dist
           path: dist/
@@ -41,13 +30,9 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     environment: pypi
-
     steps:
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v4
         with:
           name: dist
           path: dist/
-
-      - name: Publish to PyPI (OIDC trusted publisher)
-        uses: pypa/gh-action-pypi-publish@release/v1
+      - uses: pypa/gh-action-pypi-publish@release/v1

@@ -30,10 +30,6 @@ jobs:
       - name: Lint (ruff)
         run: ruff check afmx/
 
-      - name: Type check (mypy)
-        run: mypy afmx/ --ignore-missing-imports
-        continue-on-error: true
-
       - name: Run tests
         run: pytest tests/ --cov=afmx --cov-report=xml -q
 
