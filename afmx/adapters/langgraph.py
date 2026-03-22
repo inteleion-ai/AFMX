@@ -315,8 +315,6 @@ class LangGraphAdapter(AFMXAdapter):
         the node's output state.
         """
         adapter = self
-        graph = compiled_graph
-
         async def _node_handler(
             node_input: Dict[str, Any],
             context: Any,
