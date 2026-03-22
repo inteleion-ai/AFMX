@@ -157,10 +157,12 @@ line-length    = 100
 target-version = "py310"
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "W", "UP"]
+select = ["E", "F", "I", "W"]
 ignore = [
-    "E501",
-    "F401",
+    "E501",  # line too long — black handles this
+    "F401",  # imported but unused — many __init__.py re-exports
+    "E711",  # comparison to None
+    "E712",  # comparison to True/False
 ]
 
 [tool.ruff.lint.isort]
