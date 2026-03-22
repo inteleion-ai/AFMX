@@ -1,0 +1,58 @@
+{
+  "name": "hello-afmx",
+  "version": "1.0.0",
+  "mode": "SEQUENTIAL",
+  "nodes": [
+    {
+      "id": "step-1",
+      "name": "fetch_data",
+      "type": "FUNCTION",
+      "handler": "afmx.examples.handlers.echo_handler",
+      "config": {
+        "params": {"label": "step-1"},
+        "env": {},
+        "tags": ["demo"]
+      },
+      "retry_policy": {
+        "retries": 2,
+        "backoff_seconds": 0.5,
+        "backoff_multiplier": 2.0,
+        "max_backoff_seconds": 10.0,
+        "jitter": true
+      },
+      "timeout_policy": {
+        "timeout_seconds": 15.0,
+        "hard_kill": true
+      }
+    },
+    {
+      "id": "step-2",
+      "name": "process_data",
+      "type": "FUNCTION",
+      "handler": "afmx.examples.handlers.echo_handler",
+      "config": {
+        "params": {"label": "step-2"},
+        "env": {},
+        "tags": ["demo"]
+      }
+    },
+    {
+      "id": "step-3",
+      "name": "output_result",
+      "type": "FUNCTION",
+      "handler": "afmx.examples.handlers.echo_handler",
+      "config": {
+        "params": {"label": "step-3"},
+        "env": {},
+        "tags": ["demo"]
+      }
+    }
+  ],
+  "edges": [
+    {"from": "step-1", "to": "step-2"},
+    {"from": "step-2", "to": "step-3"}
+  ],
+  "abort_policy": "FAIL_FAST",
+  "max_parallelism": 5,
+  "global_timeout_seconds": 60.0
+}

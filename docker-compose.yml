@@ -1,0 +1,79 @@
+version: "3.9"
+
+services:
+
+  # ─── AFMX Engine ────────────────────────────────────────────────────────────
+  afmx:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runtime
+    container_name: afmx-engine
+    restart: unless-stopped
+    ports:
+      - "8100:8100"
+    environment:
+      AFMX_APP_ENV: production
+      AFMX_DEBUG: "false"
+      AFMX_LOG_LEVEL: INFO
+      AFMX_STORE_BACKEND: redis
+      AFMX_REDIS_URL: redis://redis:6379/3
+      AFMX_PROMETHEUS_ENABLED: "true"
+      AFMX_MAX_CONCURRENT_EXECUTIONS: "500"
+      AFMX_DEFAULT_GLOBAL_TIMEOUT_SECONDS: "300"
+      AFMX_DEFAULT_NODE_TIMEOUT_SECONDS: "30"
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c",
+             "import urllib.request; urllib.request.urlopen('http://localhost:8100/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - afmx-net
+
+  # ─── Redis (State Store) ─────────────────────────────────────────────────────
+  redis:
+    image: redis:7.2-alpine
+    container_name: afmx-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --maxmemory 512mb --maxmemory-policy allkeys-lru --save 60 1
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - afmx-net
+
+  # ─── Prometheus ──────────────────────────────────────────────────────────────
+  prometheus:
+    image: prom/prometheus:v2.51.0
+    container_name: afmx-prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=15d"
+    networks:
+      - afmx-net
+
+volumes:
+  redis-data:
+  prometheus-data:
+
+networks:
+  afmx-net:
+    driver: bridge

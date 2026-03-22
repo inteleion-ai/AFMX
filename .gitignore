@@ -1,0 +1,82 @@
+# ─── Python ──────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.pyd
+.Python
+
+# ─── Virtual environments ─────────────────────────────────────────────────────
+.venv/
+venv/
+env/
+ENV/
+.env
+!.env.example
+
+# ─── Build / packaging ────────────────────────────────────────────────────────
+*.egg-info/
+*.egg
+dist/
+build/
+MANIFEST
+.eggs/
+
+# ─── Test & coverage ──────────────────────────────────────────────────────────
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+*.cover
+nosetests.xml
+test-results/
+junit*.xml
+
+# ─── Type checking ────────────────────────────────────────────────────────────
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pytype/
+pyrightconfig.json
+
+# ─── Linting / formatting ─────────────────────────────────────────────────────
+.ruff_cache/
+.black/
+
+# ─── IDEs ─────────────────────────────────────────────────────────────────────
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ─── Logs ─────────────────────────────────────────────────────────────────────
+*.log
+logs/
+log/
+
+# ─── Runtime data ─────────────────────────────────────────────────────────────
+agentability.db
+*.db
+*.sqlite
+*.sqlite3
+
+# ─── Node.js (dashboard) ──────────────────────────────────────────────────────
+afmx/dashboard/node_modules/
+afmx/dashboard/.env
+afmx/static/assets/
+afmx/static/index.html
+
+# ─── Docker ───────────────────────────────────────────────────────────────────
+.dockerignore
+
+# ─── Secrets ──────────────────────────────────────────────────────────────────
+*.pem
+*.key
+*.crt
+secrets/
+afmx-roadmap.txt
+OSS_ENTERPRISE_ANALYSIS.md

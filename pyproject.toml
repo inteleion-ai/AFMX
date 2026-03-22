@@ -1,0 +1,173 @@
+[build-system]
+requires = ["setuptools>=65", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name        = "afmx"
+version     = "1.0.0"
+description = "Agent Flow Matrix Execution Engine — production-grade execution fabric for autonomous agents"
+readme      = "README.md"
+requires-python = ">=3.10"
+license     = {text = "MIT"}
+authors     = [{name = "Agentdyne9"}]
+keywords    = [
+    "agents", "ai", "orchestration", "execution", "dag",
+    "multi-agent", "langchain", "langgraph", "crewai", "openai",
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Framework :: FastAPI",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Typing :: Typed",
+]
+
+# Minimal hard dependencies — keep the core lean
+dependencies = [
+    "fastapi>=0.111.0,<1.0",
+    "uvicorn[standard]>=0.29.0,<1.0",
+    "pydantic>=2.7.0,<3.0",
+    "pydantic-settings>=2.2.0,<3.0",
+    "python-multipart>=0.0.9",
+    "python-dotenv>=1.0.0",
+]
+
+[project.optional-dependencies]
+redis = [
+    "redis[asyncio]>=5.0.0",
+    "hiredis>=2.3.0",
+]
+metrics = [
+    "prometheus-client>=0.20.0",
+]
+http = [
+    "httpx>=0.27.0",
+    "aiohttp>=3.9.0",
+]
+langchain = ["langchain>=0.1.0"]
+langgraph = ["langgraph>=0.0.40"]
+crewai    = ["crewai>=0.1.0"]
+openai    = ["openai>=1.0.0"]
+
+adapters = [
+    "langchain>=0.1.0",
+    "langgraph>=0.0.40",
+    "crewai>=0.1.0",
+    "openai>=1.0.0",
+]
+
+# afmx[full] — everything except adapter frameworks (they have heavy deps)
+full = [
+    "afmx[redis,metrics,http]",
+    "orjson>=3.10.0",
+]
+
+# afmx[dev] — development + testing toolchain
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+    "pytest-cov>=5.0.0",
+    "httpx>=0.27.0",
+    "black>=24.0.0",
+    "ruff>=0.4.0",
+    "mypy>=1.10.0",
+    "orjson>=3.10.0",
+    "redis[asyncio]>=5.0.0",
+    "prometheus-client>=0.20.0",
+    "websockets>=12.0",
+]
+
+[project.scripts]
+afmx = "afmx.cli:main"
+
+[project.urls]
+Repository    = "https://github.com/agentdyne9/afmx"
+Documentation = "https://github.com/agentdyne9/afmx/tree/main/docs"
+"Bug Tracker" = "https://github.com/agentdyne9/afmx/issues"
+
+[tool.setuptools.packages.find]
+where   = ["."]
+include = ["afmx*"]
+exclude = [
+    "tests*",
+    "examples*",
+    "scripts*",
+    "docs*",
+    "afmx/dashboard*",    # built separately via npm
+]
+
+# ── Test configuration ────────────────────────────────────────────────────────
+[tool.pytest.ini_options]
+asyncio_mode                     = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths                        = ["tests"]
+python_files                     = ["test_*.py"]
+python_classes                   = ["Test*"]
+python_functions                 = ["test_*"]
+addopts                          = ["--tb=short", "--strict-markers", "-q"]
+markers = [
+    "unit: Unit tests (fast, no I/O)",
+    "integration: Integration tests (FastAPI + engine)",
+    "slow: Tests that take > 1s",
+    "adapters: Adapter-specific tests requiring framework installs",
+]
+
+# ── Coverage ──────────────────────────────────────────────────────────────────
+[tool.coverage.run]
+source = ["afmx"]
+omit   = [
+    "tests/*",
+    "examples/*",
+    "afmx/__main__.py",
+    "afmx/dashboard/*",
+    "afmx/_ui_block.py",
+    "afmx/_ui_spa_block.py",
+    "afmx/core/_engine_patch.py",
+    "afmx/api/adapters_routes.py",
+]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false
+fail_under   = 70
+
+# ── Black ─────────────────────────────────────────────────────────────────────
+[tool.black]
+line-length    = 100
+target-version = ["py310", "py311", "py312"]
+exclude        = '''
+(
+  /(
+    \.eggs | \.git | \.venv | build | dist
+  )/
+)
+'''
+
+# ── Ruff ──────────────────────────────────────────────────────────────────────
+[tool.ruff]
+line-length    = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W", "UP"]
+ignore = [
+    "E501",  # line too long — black handles this
+    "F401",  # imported but unused — many __init__.py re-exports
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["afmx"]
+
+# ── MyPy ──────────────────────────────────────────────────────────────────────
+[tool.mypy]
+python_version      = "3.10"
+strict              = false
+ignore_missing_imports = true
+warn_return_any     = false
+check_untyped_defs  = true
+exclude             = ["tests/", "examples/", "scripts/"]

@@ -1,0 +1,2314 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AFMX — Agent Flow Matrix Engine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════════════════════════════
+   AFMX DASHBOARD — Production-grade, dark-first, AI company design
+   Inspired by: LangSmith · W&B · Prefect · Temporal · Vercel · Linear
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ── Tokens ── */
+:root {
+  --font:  'Inter', -apple-system, system-ui, sans-serif;
+  --mono:  'JetBrains Mono', 'SF Mono', Menlo, monospace;
+  --r-xs: 4px; --r-sm: 6px; --r-md: 8px; --r-lg: 12px;
+  --r-xl: 16px; --r-2xl: 20px; --r-full: 9999px;
+  --sidebar-w: 228px; --topbar-h: 56px;
+  --t-fast: 80ms ease; --t-base: 140ms ease; --t-slow: 220ms ease;
+}
+
+/* ── Dark theme (default) ── */
+[data-theme="dark"] {
+  --bg-base:      #0a0a0b;
+  --bg-surface:   #111113;
+  --bg-elevated:  #18181b;
+  --bg-overlay:   #1c1c1f;
+  --bg-muted:     #27272a;
+  --bg-subtle:    #3f3f46;
+  --border:       #27272a;
+  --border-med:   #3f3f46;
+  --border-light: #1e1e21;
+  --text-primary:   #fafafa;
+  --text-secondary: #a1a1aa;
+  --text-tertiary:  #52525b;
+  --text-disabled:  #3f3f46;
+  --brand:        #6366f1;
+  --brand-dim:    rgba(99,102,241,.12);
+  --brand-border: rgba(99,102,241,.3);
+  --green:        #22c55e;
+  --green-dim:    rgba(34,197,94,.1);
+  --red:          #ef4444;
+  --red-dim:      rgba(239,68,68,.1);
+  --amber:        #f59e0b;
+  --amber-dim:    rgba(245,158,11,.1);
+  --cyan:         #06b6d4;
+  --cyan-dim:     rgba(6,182,212,.1);
+  --purple:       #a855f7;
+  --purple-dim:   rgba(168,85,247,.1);
+  --shadow-sm: 0 1px 3px rgba(0,0,0,.4);
+  --shadow-md: 0 4px 12px rgba(0,0,0,.5);
+  --shadow-lg: 0 16px 40px rgba(0,0,0,.7);
+  --shadow-xl: 0 24px 64px rgba(0,0,0,.8);
+}
+
+/* ── Light theme ── */
+[data-theme="light"] {
+  --bg-base:      #f4f4f5;
+  --bg-surface:   #ffffff;
+  --bg-elevated:  #ffffff;
+  --bg-overlay:   #ffffff;
+  --bg-muted:     #f4f4f5;
+  --bg-subtle:    #e4e4e7;
+  --border:       #e4e4e7;
+  --border-med:   #d4d4d8;
+  --border-light: #f0f0f1;
+  --text-primary:   #09090b;
+  --text-secondary: #52525b;
+  --text-tertiary:  #a1a1aa;
+  --text-disabled:  #d4d4d8;
+  --brand:        #4f46e5;
+  --brand-dim:    rgba(79,70,229,.08);
+  --brand-border: rgba(79,70,229,.25);
+  --green:        #16a34a;
+  --green-dim:    rgba(22,163,74,.08);
+  --red:          #dc2626;
+  --red-dim:      rgba(220,38,38,.08);
+  --amber:        #d97706;
+  --amber-dim:    rgba(217,119,6,.08);
+  --cyan:         #0891b2;
+  --cyan-dim:     rgba(8,145,178,.08);
+  --purple:       #9333ea;
+  --purple-dim:   rgba(147,51,234,.08);
+  --shadow-sm: 0 1px 3px rgba(0,0,0,.08);
+  --shadow-md: 0 4px 12px rgba(0,0,0,.1);
+  --shadow-lg: 0 16px 40px rgba(0,0,0,.12);
+  --shadow-xl: 0 24px 64px rgba(0,0,0,.16);
+}
+
+/* ── Reset ── */
+*, *::before, *::after { box-sizing: border-box; }
+* { margin: 0; padding: 0; }
+html { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+body {
+  font-family: var(--font);
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--text-primary);
+  background: var(--bg-base);
+  min-height: 100vh;
+  overflow: hidden;
+}
+button { font-family: var(--font); cursor: pointer; border: none; background: none; }
+input, select, textarea { font-family: var(--font); }
+a { color: var(--brand); text-decoration: none; }
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--bg-subtle); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-tertiary); }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   LAYOUT
+   ═══════════════════════════════════════════════════════════════════════ */
+.app { display: flex; height: 100vh; overflow: hidden; }
+
+/* ── Sidebar ── */
+.sidebar {
+  width: var(--sidebar-w);
+  background: var(--bg-surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  height: 100vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 16px 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.logo-mark {
+  width: 30px; height: 30px;
+  background: linear-gradient(135deg, var(--brand) 0%, var(--purple) 100%);
+  border-radius: var(--r-md);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 13px; color: #fff;
+  letter-spacing: -0.5px; flex-shrink: 0;
+  box-shadow: 0 0 0 1px rgba(255,255,255,.06);
+}
+
+.logo-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.3px;
+}
+
+.logo-tag {
+  font-size: 10px;
+  color: var(--text-tertiary);
+  font-weight: 500;
+  margin-top: 1px;
+}
+
+/* ── Nav ── */
+.nav { flex: 1; padding: 8px 0; overflow-y: auto; }
+
+.nav-section {
+  padding: 8px 10px 4px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 1px 6px;
+  padding: 7px 10px;
+  border-radius: var(--r-md);
+  cursor: pointer;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  transition: background var(--t-fast), color var(--t-fast);
+  user-select: none;
+  position: relative;
+}
+
+.nav-item svg { flex-shrink: 0; opacity: .75; }
+
+.nav-item:hover { background: var(--bg-muted); color: var(--text-primary); }
+.nav-item:hover svg { opacity: 1; }
+
+.nav-item.active {
+  background: var(--brand-dim);
+  color: var(--brand);
+  font-weight: 600;
+}
+.nav-item.active svg { opacity: 1; color: var(--brand); }
+
+.nav-badge {
+  margin-left: auto;
+  background: var(--bg-muted);
+  color: var(--text-tertiary);
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: var(--r-full);
+}
+
+.nav-item.active .nav-badge {
+  background: var(--brand-dim);
+  color: var(--brand);
+}
+
+/* ── Sidebar footer ── */
+.sidebar-footer {
+  padding: 12px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.health-pill {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 10px;
+  background: var(--green-dim);
+  border: 1px solid rgba(34,197,94,.2);
+  border-radius: var(--r-md);
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--green);
+}
+
+.health-pill .dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--green);
+  animation: pulse 2s ease infinite;
+}
+
+.health-pill.unhealthy { background: var(--red-dim); border-color: rgba(239,68,68,.2); color: var(--red); }
+.health-pill.unhealthy .dot { background: var(--red); animation: none; }
+
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(.8)} }
+
+/* Theme toggle row */
+.sidebar-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.version-tag {
+  font-size: 10.5px;
+  color: var(--text-tertiary);
+  font-family: var(--mono);
+}
+
+.theme-btn {
+  width: 28px; height: 28px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: var(--r-md);
+  color: var(--text-tertiary);
+  transition: all var(--t-base);
+}
+.theme-btn:hover { background: var(--bg-muted); color: var(--text-primary); }
+
+/* ── Main ── */
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+  min-width: 0;
+}
+
+/* ── Topbar ── */
+.topbar {
+  height: var(--topbar-h);
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.topbar-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.2px;
+}
+
+.topbar-sep {
+  color: var(--text-tertiary);
+  font-size: 16px;
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+/* Cmd-K trigger */
+.cmd-k-trigger {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  background: var(--bg-muted);
+  border: 1px solid var(--border-med);
+  border-radius: var(--r-md);
+  font-size: 12px;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition: all var(--t-fast);
+  min-width: 200px;
+}
+.cmd-k-trigger:hover { border-color: var(--brand-border); color: var(--text-secondary); }
+.cmd-k-trigger kbd {
+  background: var(--bg-overlay);
+  border: 1px solid var(--border-med);
+  border-radius: 4px;
+  font-family: var(--mono);
+  font-size: 10px;
+  padding: 1px 5px;
+  margin-left: auto;
+  color: var(--text-tertiary);
+}
+
+/* API key input */
+.api-key-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.api-key-wrap svg {
+  position: absolute;
+  left: 8px;
+  color: var(--text-tertiary);
+  pointer-events: none;
+}
+
+.api-key-wrap input {
+  background: var(--bg-muted);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 5px 10px 5px 28px;
+  font-size: 12px;
+  color: var(--text-primary);
+  outline: none;
+  width: 200px;
+  font-family: var(--mono);
+  transition: border-color var(--t-base);
+}
+.api-key-wrap input::placeholder { color: var(--text-tertiary); font-family: var(--font); }
+.api-key-wrap input:focus { border-color: var(--brand-border); }
+
+/* ── Content area ── */
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+  background: var(--bg-base);
+}
+
+/* ── Pages ── */
+.page { display: none; animation: fadeUp .15s ease; }
+.page.active { display: block; }
+@keyframes fadeUp { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:none} }
+
+/* ── Page header ── */
+.page-hdr { margin-bottom: 20px; }
+.page-hdr h2 {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.4px;
+  line-height: 1.2;
+}
+.page-hdr p { font-size: 13px; color: var(--text-secondary); margin-top: 3px; }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   COMPONENTS
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ── Button ── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: var(--r-md);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--t-base);
+  border: 1px solid transparent;
+  white-space: nowrap;
+  line-height: 1;
+}
+.btn:active { transform: scale(.97); }
+
+.btn-primary {
+  background: var(--brand);
+  color: #fff;
+  border-color: var(--brand);
+}
+.btn-primary:hover { opacity: .88; }
+
+.btn-secondary {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  border-color: var(--border-med);
+}
+.btn-secondary:hover { background: var(--bg-muted); }
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-secondary);
+  border-color: transparent;
+}
+.btn-ghost:hover { background: var(--bg-muted); color: var(--text-primary); }
+
+.btn-danger {
+  background: transparent;
+  color: var(--red);
+  border-color: rgba(239,68,68,.3);
+}
+.btn-danger:hover { background: var(--red-dim); }
+
+.btn-sm { padding: 5px 10px; font-size: 12px; }
+.btn-xs { padding: 3px 8px; font-size: 11px; }
+
+/* Icon button */
+.btn-icon {
+  width: 32px; height: 32px;
+  padding: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* ── Card ── */
+.card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl);
+  overflow: hidden;
+}
+
+.card-hdr {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+}
+
+.card-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card-body { padding: 0; }
+.card-p { padding: 16px 18px; }
+
+/* ── Stat cards grid ── */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.stat-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl);
+  padding: 18px 20px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color var(--t-slow), box-shadow var(--t-slow);
+}
+
+.stat-card:hover { border-color: var(--border-med); box-shadow: var(--shadow-md); }
+
+.stat-card-accent {
+  position: absolute;
+  top: 0; left: 0;
+  width: 3px; height: 100%;
+  border-radius: 3px 0 0 3px;
+}
+
+.stat-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  margin-bottom: 10px;
+}
+
+.stat-value {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -1.5px;
+  line-height: 1;
+  color: var(--text-primary);
+}
+
+.stat-sub {
+  font-size: 11.5px;
+  color: var(--text-tertiary);
+  margin-top: 6px;
+}
+
+/* ── Badge ── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: var(--r-full);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  border: 1px solid transparent;
+}
+
+.badge-dot { width: 5px; height: 5px; border-radius: 50%; }
+
+.badge-green  { background: var(--green-dim);  color: var(--green);  border-color: rgba(34,197,94,.2);  }
+.badge-green  .badge-dot { background: var(--green); }
+.badge-red    { background: var(--red-dim);    color: var(--red);    border-color: rgba(239,68,68,.2);  }
+.badge-red    .badge-dot { background: var(--red); }
+.badge-amber  { background: var(--amber-dim);  color: var(--amber);  border-color: rgba(245,158,11,.2); }
+.badge-amber  .badge-dot { background: var(--amber); }
+.badge-brand  { background: var(--brand-dim);  color: var(--brand);  border-color: var(--brand-border); }
+.badge-brand  .badge-dot { background: var(--brand); }
+.badge-purple { background: var(--purple-dim); color: var(--purple); border-color: rgba(168,85,247,.2); }
+.badge-purple .badge-dot { background: var(--purple); }
+.badge-cyan   { background: var(--cyan-dim);   color: var(--cyan);   border-color: rgba(6,182,212,.2);  }
+.badge-cyan   .badge-dot { background: var(--cyan); }
+.badge-muted  { background: var(--bg-muted);   color: var(--text-tertiary); }
+.badge-muted  .badge-dot { background: var(--text-tertiary); }
+
+/* ── Table ── */
+.tbl-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; }
+
+thead tr { background: var(--bg-base); }
+th {
+  padding: 9px 16px;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  text-align: left;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--border);
+}
+td {
+  padding: 11px 16px;
+  font-size: 13px;
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-light);
+  vertical-align: middle;
+}
+tr:last-child td { border-bottom: none; }
+tbody tr { transition: background var(--t-fast); }
+tbody tr:hover td { background: var(--bg-muted); }
+
+.td-mono {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--brand);
+  cursor: pointer;
+  transition: color var(--t-fast);
+}
+.td-mono:hover { color: var(--text-primary); text-decoration: underline; }
+
+.td-muted { color: var(--text-secondary); }
+.td-dim   { color: var(--text-tertiary);  font-size: 12px; }
+
+.empty-row td {
+  text-align: center;
+  padding: 48px 24px;
+  color: var(--text-tertiary);
+}
+
+/* ── Form controls ── */
+.form-row  { display: grid; gap: 14px; margin-bottom: 14px; }
+.form-row-2 { grid-template-columns: 1fr 1fr; }
+.form-row-3 { grid-template-columns: 1fr 1fr 1fr; }
+
+.form-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 5px;
+  letter-spacing: 0.1px;
+}
+.form-hint { font-size: 11.5px; color: var(--text-tertiary); margin-top: 4px; }
+
+.input, input[type=text]:not(.raw), input[type=password]:not(.raw),
+input[type=number]:not(.raw), select:not(.raw), textarea:not(.raw) {
+  width: 100%;
+  padding: 8px 11px;
+  background: var(--bg-muted);
+  border: 1px solid var(--border-med);
+  border-radius: var(--r-md);
+  font-size: 13px;
+  color: var(--text-primary);
+  outline: none;
+  transition: border-color var(--t-base), box-shadow var(--t-base);
+  appearance: none;
+}
+.input::placeholder, input::placeholder { color: var(--text-tertiary); }
+.input:focus, input[type=text]:not(.raw):focus,
+input[type=password]:not(.raw):focus, input[type=number]:not(.raw):focus,
+select:not(.raw):focus, textarea:not(.raw):focus {
+  border-color: var(--brand-border);
+  box-shadow: 0 0 0 3px var(--brand-dim);
+  background: var(--bg-elevated);
+}
+textarea:not(.raw) {
+  resize: vertical; min-height: 130px;
+  font-family: var(--mono); font-size: 12px; line-height: 1.65;
+}
+select:not(.raw) {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='11' viewBox='0 0 24 24' fill='none' stroke='%2371717a' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 9px center;
+  padding-right: 28px;
+  cursor: pointer;
+}
+
+/* ── Filter bar ── */
+.filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+.filter-bar input, .filter-bar select { width: auto; }
+.filter-bar .gap { flex: 1; }
+
+/* ── Result / log pane ── */
+.code-pane {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 14px 16px;
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--text-secondary);
+  white-space: pre-wrap;
+  word-break: break-all;
+  overflow-y: auto;
+}
+
+.log-box {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 4px 0;
+  height: 380px;
+  overflow-y: auto;
+  font-family: var(--mono);
+  font-size: 11.5px;
+}
+
+.log-entry {
+  display: grid;
+  grid-template-columns: 70px 180px 1fr;
+  gap: 10px;
+  padding: 3px 14px;
+  border-radius: 4px;
+  transition: background var(--t-fast);
+  align-items: baseline;
+}
+.log-entry:hover { background: var(--bg-muted); }
+.log-ts   { color: var(--text-tertiary); font-size: 10.5px; }
+.log-type { font-weight: 600; }
+.log-data { color: var(--text-secondary); word-break: break-all; line-height: 1.5; }
+.log-empty { text-align: center; padding: 48px; color: var(--text-tertiary); font-family: var(--font); }
+
+/* ── Mono chip ── */
+.chip {
+  font-family: var(--mono);
+  font-size: 11px;
+  background: var(--bg-muted);
+  color: var(--text-secondary);
+  padding: 1px 7px;
+  border-radius: var(--r-xs);
+  border: 1px solid var(--border);
+}
+
+/* ── Alert ── */
+.alert {
+  display: none;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: var(--r-md);
+  font-size: 12.5px;
+  margin-bottom: 14px;
+  border: 1px solid transparent;
+}
+.alert.show { display: flex; }
+.alert-success { background: var(--green-dim); border-color: rgba(34,197,94,.2); color: var(--green); }
+.alert-error   { background: var(--red-dim);   border-color: rgba(239,68,68,.2); color: var(--red); }
+.alert-info    { background: var(--brand-dim); border-color: var(--brand-border); color: var(--brand); }
+.alert-warn    { background: var(--amber-dim); border-color: rgba(245,158,11,.2); color: var(--amber); }
+
+/* ── Modal ── */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.65);
+  backdrop-filter: blur(6px);
+  z-index: 500;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.modal-overlay.open { display: flex; animation: fadeUp .15s ease; }
+
+.modal {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-med);
+  border-radius: var(--r-2xl);
+  box-shadow: var(--shadow-xl);
+  width: 100%;
+  max-width: 540px;
+  max-height: 92vh;
+  overflow-y: auto;
+  position: relative;
+}
+.modal-lg { max-width: 780px; }
+
+.modal-hdr {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 22px 24px 0;
+  margin-bottom: 20px;
+}
+
+.modal-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.3px;
+}
+.modal-sub { font-size: 12.5px; color: var(--text-secondary); margin-top: 3px; }
+
+.modal-close {
+  color: var(--text-tertiary);
+  padding: 4px;
+  border-radius: var(--r-sm);
+  transition: all var(--t-fast);
+  flex-shrink: 0;
+  margin-top: -2px;
+}
+.modal-close:hover { background: var(--bg-muted); color: var(--text-primary); }
+
+.modal-body { padding: 0 24px; }
+.modal-footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 24px 22px;
+  margin-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+/* ── Key reveal ── */
+.key-reveal {
+  display: none;
+  margin: 12px 0;
+  padding: 12px 14px;
+  background: var(--green-dim);
+  border: 1px solid rgba(34,197,94,.25);
+  border-radius: var(--r-md);
+}
+.key-reveal.show { display: block; }
+.key-reveal-label { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--green); letter-spacing: .5px; margin-bottom: 5px; }
+.key-reveal-value { font-family: var(--mono); font-size: 12px; color: var(--green); word-break: break-all; user-select: all; cursor: text; }
+
+/* ── Divider ── */
+.divider { height: 1px; background: var(--border); margin: 16px 0; }
+
+/* ── Grid layouts ── */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   EXECUTION WATERFALL TIMELINE
+   ═══════════════════════════════════════════════════════════════════════ */
+.waterfall {
+  font-size: 12px;
+  line-height: 1;
+}
+.waterfall-row {
+  display: grid;
+  grid-template-columns: 140px 1fr 60px;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--border-light);
+}
+.waterfall-row:last-child { border-bottom: none; }
+.waterfall-name { color: var(--text-secondary); font-size: 11.5px; truncate: ellipsis; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.waterfall-bar-wrap { position: relative; height: 16px; background: var(--bg-muted); border-radius: 3px; overflow: hidden; }
+.waterfall-bar {
+  position: absolute;
+  height: 100%;
+  border-radius: 3px;
+  min-width: 4px;
+  transition: opacity .15s;
+}
+.waterfall-dur { font-family: var(--mono); font-size: 10.5px; color: var(--text-tertiary); text-align: right; }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   MINI SUCCESS RATE CHART
+   ═══════════════════════════════════════════════════════════════════════ */
+.mini-chart-wrap { position: relative; }
+.mini-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 36px;
+  margin-top: 8px;
+}
+.mini-bar {
+  flex: 1;
+  border-radius: 2px 2px 0 0;
+  min-height: 3px;
+  transition: opacity var(--t-fast);
+}
+.mini-bar:hover { opacity: .7; }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   COMMAND PALETTE
+   ═══════════════════════════════════════════════════════════════════════ */
+.palette-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.7);
+  backdrop-filter: blur(8px);
+  z-index: 900;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 15vh;
+}
+.palette-overlay.open { display: flex; animation: fadeUp .12s ease; }
+
+.palette {
+  width: 560px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-med);
+  border-radius: var(--r-2xl);
+  box-shadow: var(--shadow-xl);
+  overflow: hidden;
+}
+
+.palette-input-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.palette-input-row svg { color: var(--text-tertiary); flex-shrink: 0; }
+.palette-input-row input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 15px;
+  color: var(--text-primary);
+}
+.palette-input-row input::placeholder { color: var(--text-tertiary); }
+
+.palette-results { max-height: 350px; overflow-y: auto; padding: 6px 0; }
+
+.palette-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 16px;
+  cursor: pointer;
+  transition: background var(--t-fast);
+  border-radius: 0;
+}
+.palette-item:hover, .palette-item.selected { background: var(--brand-dim); }
+.palette-item .pi-icon { width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; background: var(--bg-muted); border-radius: var(--r-md); flex-shrink: 0; color: var(--text-secondary); }
+.palette-item .pi-name { font-size: 13.5px; font-weight: 500; color: var(--text-primary); }
+.palette-item .pi-desc { font-size: 11.5px; color: var(--text-tertiary); margin-top: 1px; }
+.palette-footer { padding: 8px 16px; border-top: 1px solid var(--border); display: flex; gap: 12px; }
+.palette-hint { font-size: 11px; color: var(--text-tertiary); display: flex; align-items: center; gap: 4px; }
+.palette-hint kbd { background: var(--bg-muted); border: 1px solid var(--border-med); border-radius: 4px; font-family: var(--mono); font-size: 10px; padding: 1px 5px; }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   LIVE STREAM PILLS
+   ═══════════════════════════════════════════════════════════════════════ */
+.stream-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: var(--r-full);
+  font-size: 11.5px;
+  font-weight: 600;
+  border: 1px solid transparent;
+}
+.stream-pill .dot { width: 6px; height: 6px; border-radius: 50%; }
+.sp-idle     { background: var(--bg-muted);   color: var(--text-tertiary); border-color: var(--border); }
+.sp-live     { background: var(--green-dim);  color: var(--green); border-color: rgba(34,197,94,.2); }
+.sp-live .dot { background: var(--green); animation: pulse 1s ease infinite; }
+.sp-done     { background: var(--brand-dim);  color: var(--brand); border-color: var(--brand-border); }
+.sp-error    { background: var(--red-dim);    color: var(--red); border-color: rgba(239,68,68,.2); }
+.sp-connect  { background: var(--amber-dim);  color: var(--amber); border-color: rgba(245,158,11,.2); }
+
+/* ── Toast ── */
+#toast {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.toast-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-med);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-lg);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  animation: slideIn .2s ease;
+  min-width: 260px;
+  max-width: 380px;
+}
+@keyframes slideIn { from{opacity:0;transform:translateX(20px)} to{opacity:1;transform:none} }
+.toast-item.t-success { border-left: 3px solid var(--green); }
+.toast-item.t-error   { border-left: 3px solid var(--red); }
+.toast-item.t-info    { border-left: 3px solid var(--brand); }
+
+/* ── Section tabs ── */
+.tabs {
+  display: flex;
+  gap: 2px;
+  background: var(--bg-muted);
+  border-radius: var(--r-md);
+  padding: 3px;
+  width: fit-content;
+  margin-bottom: 16px;
+}
+.tab {
+  padding: 5px 12px;
+  border-radius: calc(var(--r-md) - 1px);
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--t-base);
+  background: none;
+  border: none;
+}
+.tab.active {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  font-weight: 600;
+  box-shadow: var(--shadow-sm);
+}
+
+/* ── Auto-refresh indicator ── */
+.refresh-ring {
+  width: 28px; height: 28px;
+  display: flex; align-items: center; justify-content: center;
+  position: relative;
+  cursor: pointer;
+  border-radius: var(--r-md);
+  color: var(--text-tertiary);
+  transition: all var(--t-base);
+}
+.refresh-ring:hover { background: var(--bg-muted); color: var(--text-primary); }
+.refresh-ring.spinning svg { animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Node detail trace ── */
+.trace-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border-light);
+}
+.trace-row:last-child { border-bottom: none; }
+.trace-bullet {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 700;
+}
+.trace-bullet.ok  { background: var(--green-dim);  color: var(--green); border: 1.5px solid rgba(34,197,94,.3); }
+.trace-bullet.err { background: var(--red-dim);    color: var(--red);   border: 1.5px solid rgba(239,68,68,.3); }
+.trace-bullet.skip{ background: var(--bg-muted);  color: var(--text-tertiary); border: 1.5px solid var(--border); }
+.trace-bullet.fb  { background: var(--purple-dim); color: var(--purple); border: 1.5px solid rgba(168,85,247,.3); }
+
+/* ── Responsive ── */
+@media (max-width: 1100px) { .stat-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 860px)  { .grid-2 { grid-template-columns: 1fr; } }
+</style>
+</head>
+
+<body>
+<div class="app">
+
+<!-- ════════════════════════════════════════
+     SIDEBAR
+     ════════════════════════════════════════ -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-mark">AX</div>
+    <div>
+      <div class="logo-name">AFMX</div>
+      <div class="logo-tag">Agent Flow Matrix</div>
+    </div>
+  </div>
+
+  <nav class="nav">
+    <div class="nav-section">Monitor</div>
+    <div class="nav-item active" onclick="goPage('overview')">
+      <svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="2" y="2" width="7" height="7" rx="1.5"/><rect x="11" y="2" width="7" height="7" rx="1.5"/><rect x="2" y="11" width="7" height="7" rx="1.5"/><rect x="11" y="11" width="7" height="7" rx="1.5"/></svg>
+      <span>Overview</span>
+    </div>
+    <div class="nav-item" onclick="goPage('executions')">
+      <svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 5h14M3 10h14M3 15h14"/></svg>
+      <span>Executions</span>
+      <span class="nav-badge" id="nb-exec">0</span>
+    </div>
+    <div class="nav-item" onclick="goPage('stream')">
+      <svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M2.5 10h3l2.5 7 4-14 2.5 7h3"/></svg>
+      <span>Live Stream</span>
+    </div>
+
+    <div class="nav-section" style="margin-top:6px">Build</div>
+    <div class="nav-item" onclick="goPage('run')">
+      <svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7"><polygon points="5 3.5 16.5 10 5 16.5"/></svg>
+      <span>Run Matrix</span>
+    </div>
+    <div class="nav-item" onclick="goPage('matrices')">
+      <svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="3" width="14" height="14" rx="1.5"/><path d="M7 7h6M7 10h6M7 13h4"/></svg>
+      <span>Saved Matrices</span>
+    </div>
+    <div class="nav-item" onclick="goPage('plugins')">
+      <svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12.5 3l2 4 4 .5-3 2.9.7 4-3.7-2-3.7 2 .7-4-3-2.9 4-.5z"/></svg>
+      <span>Plugins</span>
+    </div>
+
+    <div class="nav-section" style="margin-top:6px">Governance</div>
+    <div class="nav-item" onclick="goPage('audit')">
+      <svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 3h12a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><line x1="7" y1="7" x2="13" y2="7"/><line x1="7" y1="10" x2="13" y2="10"/><line x1="7" y1="13" x2="11" y2="13"/></svg>
+      <span>Audit Log</span>
+    </div>
+    <div class="nav-item" onclick="goPage('keys')">
+      <svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="7.5" cy="12.5" r="3.5"/><path d="M10.5 9.5L17 3"/><line x1="15" y1="5" x2="17" y2="7"/></svg>
+      <span>API Keys</span>
+    </div>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="health-pill" id="health-pill">
+      <div class="dot"></div>
+      <span id="health-text">Connecting…</span>
+    </div>
+    <div class="sidebar-controls">
+      <span class="version-tag" id="version-tag">v1.0.0</span>
+      <button class="theme-btn" onclick="toggleTheme()" title="Toggle theme">
+        <svg id="theme-icon" width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.9 4.9l1.4 1.4M13.7 13.7l1.4 1.4M4.9 15.1l1.4-1.4M13.7 6.3l1.4-1.4"/><circle cx="10" cy="10" r="3.5"/></svg>
+      </button>
+    </div>
+  </div>
+</aside>
+
+<!-- ════════════════════════════════════════
+     MAIN
+     ════════════════════════════════════════ -->
+<div class="main">
+
+  <!-- Topbar -->
+  <header class="topbar">
+    <span class="topbar-title" id="page-title">Overview</span>
+    <div class="topbar-right">
+      <button class="cmd-k-trigger" onclick="openPalette()">
+        <svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8.5" cy="8.5" r="5.5"/><line x1="13" y1="13" x2="18" y2="18"/></svg>
+        Search or run a command…
+        <kbd>⌘K</kbd>
+      </button>
+      <div class="api-key-wrap">
+        <svg width="12" height="12" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="7.5" cy="12.5" r="3.5"/><path d="M10.5 9.5L17 3"/><line x1="15" y1="5" x2="17" y2="7"/></svg>
+        <input class="raw" type="password" id="api-key-input" placeholder="API Key (optional)">
+      </div>
+      <div class="refresh-ring" id="refresh-btn" onclick="refresh()" title="Refresh (R)">
+        <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 10a7 7 0 1 1-7-7"/><polyline points="13 1 17 1 17 5"/></svg>
+      </div>
+      <a href="/docs" target="_blank" class="btn btn-ghost btn-sm">
+        Docs
+        <svg width="11" height="11" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3h3v3M10 10l7-7M10 4H4v12h12v-6"/></svg>
+      </a>
+    </div>
+  </header>
+
+  <!-- Content -->
+  <div class="content" id="content-area">
+
+<!-- ════════════════════════════════════════
+     PAGE: OVERVIEW
+     ════════════════════════════════════════ -->
+<div id="page-overview" class="page active">
+  <div class="page-hdr">
+    <h2>Overview</h2>
+    <p>Engine health · concurrency · execution activity</p>
+  </div>
+
+  <!-- Stat cards -->
+  <div class="stat-grid" id="stat-grid">
+    <div class="stat-card">
+      <div class="stat-card-accent" style="background:var(--brand)"></div>
+      <div class="stat-label">Uptime</div>
+      <div class="stat-value" id="st-uptime">—</div>
+      <div class="stat-sub" id="st-env">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card-accent" style="background:var(--green)"></div>
+      <div class="stat-label">Executions in store</div>
+      <div class="stat-value" id="st-execs">—</div>
+      <div class="stat-sub" id="st-store">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card-accent" style="background:var(--amber)"></div>
+      <div class="stat-label">Concurrency</div>
+      <div class="stat-value" id="st-conc">—</div>
+      <div class="stat-sub" id="st-conc-sub">active / max</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card-accent" style="background:var(--purple)"></div>
+      <div class="stat-label">Peak active</div>
+      <div class="stat-value" id="st-peak">—</div>
+      <div class="stat-sub" id="st-util">— utilization</div>
+    </div>
+  </div>
+
+  <div class="grid-2" style="margin-bottom:16px">
+    <!-- Health card -->
+    <div class="card">
+      <div class="card-hdr">
+        <span class="card-title">
+          <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 10a8 8 0 1 0 16 0"/><path d="M10 2v8l4 2"/></svg>
+          Engine Status
+        </span>
+        <span class="badge badge-green" id="health-badge"><span class="badge-dot"></span>Healthy</span>
+      </div>
+      <div class="card-p" id="health-body" style="font-size:13px;line-height:2"></div>
+    </div>
+
+    <!-- Adapters + plugin summary -->
+    <div class="card">
+      <div class="card-hdr">
+        <span class="card-title">
+          <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12.5 3l2 4 4 .5-3 2.9.7 4-3.7-2-3.7 2 .7-4-3-2.9 4-.5z"/></svg>
+          Plugins &amp; Adapters
+        </span>
+      </div>
+      <div class="card-p">
+        <div style="margin-bottom:10px;font-size:12px;color:var(--text-tertiary);font-weight:600;text-transform:uppercase;letter-spacing:.5px">Adapters</div>
+        <div id="adapter-body" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px"></div>
+        <div style="margin-bottom:8px;font-size:12px;color:var(--text-tertiary);font-weight:600;text-transform:uppercase;letter-spacing:.5px">Handler Counts</div>
+        <div id="plugin-summary" style="display:flex;gap:10px;flex-wrap:wrap"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent executions -->
+  <div class="card">
+    <div class="card-hdr">
+      <span class="card-title">Recent Executions</span>
+      <button class="btn btn-ghost btn-sm btn-icon" onclick="loadOverview()" title="Refresh">
+        <svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 10a7 7 0 1 1-7-7"/><polyline points="13 1 17 1 17 5"/></svg>
+      </button>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Execution ID</th><th>Matrix</th><th>Status</th><th>Nodes</th><th>Duration</th><th>Time</th></tr></thead>
+        <tbody id="ov-exec-tbody"><tr class="empty-row"><td colspan="6">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     PAGE: EXECUTIONS
+     ════════════════════════════════════════ -->
+<div id="page-executions" class="page">
+  <div class="page-hdr">
+    <h2>Executions</h2>
+    <p>Full history with node trace inspection and retry controls</p>
+  </div>
+
+  <div class="filter-bar">
+    <select id="ef-status" style="width:150px">
+      <option value="">All statuses</option>
+      <option>COMPLETED</option><option>FAILED</option><option>RUNNING</option>
+      <option>PARTIAL</option><option>TIMEOUT</option><option>ABORTED</option>
+    </select>
+    <input type="text" id="ef-matrix" placeholder="Matrix name…" style="width:200px">
+    <button class="btn btn-primary btn-sm" onclick="loadExecutions()">Filter</button>
+    <div class="gap"></div>
+    <span id="exec-count-label" style="font-size:12px;color:var(--text-tertiary)"></span>
+    <button class="btn btn-ghost btn-sm btn-icon" onclick="loadExecutions()" title="Refresh">
+      <svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 10a7 7 0 1 1-7-7"/><polyline points="13 1 17 1 17 5"/></svg>
+    </button>
+  </div>
+
+  <div class="card">
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>ID</th><th>Matrix</th><th>Status</th><th>Completed</th><th>Failed</th><th>Duration</th><th>Queued</th><th>Actions</th></tr></thead>
+        <tbody id="exec-tbody"><tr class="empty-row"><td colspan="8">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     PAGE: LIVE STREAM
+     ════════════════════════════════════════ -->
+<div id="page-stream" class="page">
+  <div class="page-hdr">
+    <h2>Live Stream</h2>
+    <p>Real-time WebSocket execution events — node started, completed, retried, circuit breaker</p>
+  </div>
+
+  <div class="filter-bar" style="margin-bottom:12px">
+    <input type="text" id="stream-exec-id" placeholder="Paste execution ID…" style="width:340px;font-family:var(--mono);font-size:12px">
+    <button class="btn btn-primary btn-sm" onclick="startStream()">Connect</button>
+    <button class="btn btn-secondary btn-sm" onclick="stopStream()">Disconnect</button>
+    <div class="gap"></div>
+    <button class="btn btn-ghost btn-sm" onclick="clearStream()">Clear</button>
+    <span id="stream-pill" class="stream-pill sp-idle"><span class="dot"></span>Not connected</span>
+    <span id="stream-evt-count" style="font-size:11.5px;color:var(--text-tertiary)"></span>
+  </div>
+
+  <div class="log-box" id="stream-box">
+    <div class="log-empty">Connect to an execution ID to watch events stream in real-time…</div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     PAGE: RUN MATRIX
+     ════════════════════════════════════════ -->
+<div id="page-run" class="page">
+  <div class="page-hdr">
+    <h2>Run Matrix</h2>
+    <p>Execute an AFMX matrix definition — sync or fire-and-forget async</p>
+  </div>
+
+  <div id="run-alert" class="alert"></div>
+
+  <!-- Templates -->
+  <div style="margin-bottom:14px">
+    <div style="font-size:11.5px;font-weight:600;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Quick Templates</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <button class="btn btn-secondary btn-xs" onclick="loadTpl('echo')">Echo Pipeline</button>
+      <button class="btn btn-secondary btn-xs" onclick="loadTpl('agent')">Agent Chain</button>
+      <button class="btn btn-secondary btn-xs" onclick="loadTpl('parallel')">Parallel Fan-out</button>
+      <button class="btn btn-secondary btn-xs" onclick="loadTpl('retry')">Retry / Fallback</button>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div>
+      <div style="margin-bottom:14px">
+        <label class="form-label">Matrix Definition <span style="color:var(--red)">*</span></label>
+        <textarea id="run-matrix" style="min-height:220px" placeholder='{"name":"my-flow","mode":"SEQUENTIAL","nodes":[...],"edges":[]}'></textarea>
+      </div>
+      <div class="form-row form-row-2">
+        <div>
+          <label class="form-label">Input (JSON)</label>
+          <input type="text" id="run-input" placeholder='{"query":"hello"}'>
+        </div>
+        <div>
+          <label class="form-label">Variables (JSON)</label>
+          <input type="text" id="run-vars" placeholder="{}">
+        </div>
+      </div>
+      <div style="margin-bottom:14px">
+        <label class="form-label">Triggered By</label>
+        <input type="text" id="run-trigger" value="dashboard">
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <button class="btn btn-primary" onclick="runMatrix(false)">
+          <svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3.5 16.5 10 5 16.5"/></svg>
+          Run Sync
+        </button>
+        <button class="btn btn-secondary" onclick="runMatrix(true)">
+          <svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="10" cy="10" r="7.5"/><path d="M10 6v4l3 2"/></svg>
+          Run Async
+        </button>
+        <button class="btn btn-ghost btn-sm" onclick="validateMatrix()">Validate</button>
+        <span id="run-badge"></span>
+      </div>
+    </div>
+    <div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <label class="form-label" style="margin:0">Result</label>
+        <button class="btn btn-ghost btn-xs" onclick="copyResult()">Copy</button>
+      </div>
+      <div class="code-pane" id="run-result" style="height:410px">Run a matrix to see the full JSON response here…</div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     PAGE: MATRICES
+     ════════════════════════════════════════ -->
+<div id="page-matrices" class="page">
+  <div class="page-hdr">
+    <h2>Saved Matrices</h2>
+    <p>Named, versioned matrix definitions stored server-side</p>
+  </div>
+  <div class="card">
+    <div class="card-hdr">
+      <span class="card-title">All Matrices</span>
+      <button class="btn btn-ghost btn-sm btn-icon" onclick="loadMatrices()">
+        <svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 10a7 7 0 1 1-7-7"/><polyline points="13 1 17 1 17 5"/></svg>
+      </button>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Name</th><th>Version</th><th>Description</th><th>Tags</th><th>Saved</th><th>Actions</th></tr></thead>
+        <tbody id="matrix-tbody"><tr class="empty-row"><td colspan="6">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     PAGE: PLUGINS
+     ════════════════════════════════════════ -->
+<div id="page-plugins" class="page">
+  <div class="page-hdr">
+    <h2>Plugins</h2>
+    <p>All handlers registered with the execution engine — tools, agents, functions</p>
+  </div>
+  <div class="grid-3" id="plugin-stats" style="margin-bottom:16px"></div>
+  <div class="card">
+    <div class="card-hdr">
+      <span class="card-title">Handler Registry</span>
+      <button class="btn btn-ghost btn-sm btn-icon" onclick="loadPlugins()">
+        <svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 10a7 7 0 1 1-7-7"/><polyline points="13 1 17 1 17 5"/></svg>
+      </button>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Handler Key</th><th>Type</th><th>Description</th><th>Tags</th><th>Status</th></tr></thead>
+        <tbody id="plugin-tbody"><tr class="empty-row"><td colspan="5">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     PAGE: AUDIT LOG
+     ════════════════════════════════════════ -->
+<div id="page-audit" class="page">
+  <div class="page-hdr">
+    <h2>Audit Log</h2>
+    <p>Every significant operation — execution lifecycle, auth events, key management</p>
+  </div>
+  <div class="filter-bar">
+    <select id="af-action" style="width:200px">
+      <option value="">All actions</option>
+      <option value="execution.created">execution.created</option>
+      <option value="execution.completed">execution.completed</option>
+      <option value="execution.failed">execution.failed</option>
+      <option value="execution.cancelled">execution.cancelled</option>
+      <option value="auth.failure">auth.failure</option>
+      <option value="auth.denied">auth.denied</option>
+      <option value="key.created">key.created</option>
+      <option value="server.started">server.started</option>
+    </select>
+    <select id="af-outcome" style="width:130px">
+      <option value="">All outcomes</option>
+      <option>success</option><option>failure</option><option>denied</option>
+    </select>
+    <input type="text" id="af-actor" placeholder="Actor…" style="width:160px">
+    <button class="btn btn-primary btn-sm" onclick="loadAudit()">Search</button>
+    <div class="gap"></div>
+    <a href="/afmx/audit/export/json"   class="btn btn-secondary btn-sm" download>↓ JSON</a>
+    <a href="/afmx/audit/export/csv"    class="btn btn-secondary btn-sm" download>↓ CSV</a>
+    <a href="/afmx/audit/export/ndjson" class="btn btn-secondary btn-sm" download>↓ NDJSON</a>
+  </div>
+  <div class="card">
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Timestamp</th><th>Action</th><th>Actor</th><th>Role</th><th>Resource</th><th>Outcome</th><th>IP</th></tr></thead>
+        <tbody id="audit-tbody"><tr class="empty-row"><td colspan="7">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     PAGE: API KEYS
+     ════════════════════════════════════════ -->
+<div id="page-keys" class="page">
+  <div class="page-hdr">
+    <h2>API Keys</h2>
+    <p>RBAC — 5 roles · 16 permissions · tenant isolation</p>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
+    <button class="btn btn-primary" onclick="openCreateKey()">
+      <svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><line x1="10" y1="4" x2="10" y2="16"/><line x1="4" y1="10" x2="16" y2="10"/></svg>
+      Create Key
+    </button>
+    <button class="btn btn-ghost btn-sm btn-icon" onclick="loadKeys()">
+      <svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 10a7 7 0 1 1-7-7"/><polyline points="13 1 17 1 17 5"/></svg>
+    </button>
+    <span id="keys-count-badge"></span>
+  </div>
+  <div id="keys-alert" class="alert"></div>
+  <div class="card">
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Name</th><th>Role</th><th>Tenant</th><th>Key Preview</th><th>Created</th><th>Last Used</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody id="keys-tbody"><tr class="empty-row"><td colspan="8">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+</div><!-- /app -->
+
+<!-- ════════════════════════════════════════
+     MODAL: EXECUTION DETAIL
+     ════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-exec">
+  <div class="modal modal-lg">
+    <div class="modal-hdr">
+      <div>
+        <div class="modal-title">Execution Detail</div>
+        <div class="modal-sub" id="modal-exec-id" style="font-family:var(--mono);font-size:12px"></div>
+      </div>
+      <button class="modal-close" onclick="closeModal('modal-exec')">
+        <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="4" x2="16" y2="16"/><line x1="16" y1="4" x2="4" y2="16"/></svg>
+      </button>
+    </div>
+    <div class="modal-body" id="modal-exec-body">
+      <div style="text-align:center;padding:40px;color:var(--text-tertiary)">Loading…</div>
+    </div>
+    <div class="modal-footer" id="modal-exec-footer"></div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     MODAL: CREATE API KEY
+     ════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-create-key">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div>
+        <div class="modal-title">Create API Key</div>
+        <div class="modal-sub">Keys are shown once — copy immediately</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('modal-create-key')">
+        <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="4" x2="16" y2="16"/><line x1="16" y1="4" x2="4" y2="16"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div id="create-key-alert" class="alert"></div>
+      <div class="form-row form-row-2">
+        <div><label class="form-label">Name <span style="color:var(--red)">*</span></label><input type="text" id="nk-name" placeholder="e.g. ci-pipeline"></div>
+        <div>
+          <label class="form-label">Role</label>
+          <select id="nk-role">
+            <option value="VIEWER">VIEWER — read only</option>
+            <option value="SERVICE">SERVICE — execute + read</option>
+            <option value="DEVELOPER" selected>DEVELOPER — full execution</option>
+            <option value="OPERATOR">OPERATOR — execution + matrices</option>
+            <option value="ADMIN">ADMIN — all permissions</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row form-row-2">
+        <div><label class="form-label">Tenant ID</label><input type="text" id="nk-tenant" value="default"></div>
+        <div><label class="form-label">Expires In Days</label><input type="number" id="nk-expires" placeholder="Blank = never"></div>
+      </div>
+      <div style="margin-bottom:12px"><label class="form-label">Description</label><input type="text" id="nk-desc" placeholder="What is this key for?"></div>
+      <div class="key-reveal" id="key-reveal-box">
+        <div class="key-reveal-label">⚡ Key created — copy now, shown only once</div>
+        <div class="key-reveal-value" id="key-reveal-val"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" onclick="createKey()">Create Key</button>
+      <button class="btn btn-secondary" onclick="closeModal('modal-create-key')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     COMMAND PALETTE
+     ════════════════════════════════════════ -->
+<div class="palette-overlay" id="palette" onclick="if(event.target===this)closePalette()">
+  <div class="palette">
+    <div class="palette-input-row">
+      <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8.5" cy="8.5" r="5.5"/><line x1="13" y1="13" x2="18" y2="18"/></svg>
+      <input id="palette-input" placeholder="Search pages, run commands…" oninput="filterPalette(this.value)" onkeydown="palettKey(event)">
+    </div>
+    <div class="palette-results" id="palette-results"></div>
+    <div class="palette-footer">
+      <span class="palette-hint"><kbd>↑↓</kbd> Navigate</span>
+      <span class="palette-hint"><kbd>↵</kbd> Select</span>
+      <span class="palette-hint"><kbd>Esc</kbd> Close</span>
+    </div>
+  </div>
+</div>
+
+<!-- Toast container -->
+<div id="toast"></div>
+
+<!-- ════════════════════════════════════════
+     JAVASCRIPT
+     ════════════════════════════════════════ -->
+<script>
+'use strict';
+
+/* ─── State ─────────────────────────────────────────────────── */
+let currentPage = 'overview';
+let ws = null;
+let streamEvtCount = 0;
+let _paletteIdx = 0;
+let _paletteItems = [];
+
+/* ─── API ────────────────────────────────────────────────────── */
+const apiKey = () => document.getElementById('api-key-input').value.trim();
+
+const hdr = () => {
+  const h = {'Content-Type':'application/json'};
+  const k = apiKey();
+  if (k) h['X-AFMX-API-Key'] = k;
+  return h;
+};
+
+async function api(method, path, body) {
+  const opts = {method, headers: hdr()};
+  if (body != null) opts.body = JSON.stringify(body);
+  const res = await fetch(location.origin + path, opts);
+  if (!res.ok) {
+    let msg = `HTTP ${res.status}`;
+    try { const j = await res.json(); msg = j.detail || j.message || msg; } catch{}
+    throw new Error(msg);
+  }
+  return res.json();
+}
+
+/* ─── Navigation ─────────────────────────────────────────────── */
+const PAGE_TITLES = {
+  overview:'Overview', executions:'Executions', stream:'Live Stream',
+  run:'Run Matrix', matrices:'Saved Matrices', plugins:'Plugins',
+  audit:'Audit Log', keys:'API Keys',
+};
+
+const PAGE_LOADERS = {
+  overview: loadOverview, executions: loadExecutions,
+  matrices: loadMatrices, plugins: loadPlugins,
+  audit: loadAudit, keys: loadKeys,
+};
+
+function goPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const pg = document.getElementById('page-' + id);
+  if (pg) pg.classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => {
+    if ((n.getAttribute('onclick')||'').includes(`'${id}'`)) n.classList.add('active');
+  });
+  document.getElementById('page-title').textContent = PAGE_TITLES[id] || id;
+  currentPage = id;
+  if (PAGE_LOADERS[id]) PAGE_LOADERS[id]();
+}
+
+function refresh() {
+  const btn = document.getElementById('refresh-btn');
+  btn.classList.add('spinning');
+  const p = PAGE_LOADERS[currentPage];
+  const done = () => btn.classList.remove('spinning');
+  if (p) Promise.resolve(p()).then(done).catch(done);
+  else done();
+}
+
+/* ─── Format helpers ─────────────────────────────────────────── */
+const fmtMs   = ms  => ms == null ? '—' : ms < 1000 ? `${ms.toFixed(0)}ms` : `${(ms/1000).toFixed(2)}s`;
+const fmtTs   = ts  => ts ? new Date(ts*1000).toLocaleTimeString() : '—';
+const fmtDate = ts  => ts ? new Date(ts*1000).toLocaleString() : '—';
+const shortId = id  => id ? id.substring(0,8)+'…' : '—';
+
+const STATUS_COLOR = {
+  COMPLETED:'badge-green', FAILED:'badge-red', RUNNING:'badge-brand',
+  PARTIAL:'badge-amber', TIMEOUT:'badge-amber', ABORTED:'badge-muted',
+  QUEUED:'badge-muted', FALLBACK:'badge-purple', SKIPPED:'badge-muted',
+};
+const ROLE_COLOR = {
+  ADMIN:'badge-red', OPERATOR:'badge-amber', DEVELOPER:'badge-brand',
+  SERVICE:'badge-green', VIEWER:'badge-muted',
+};
+const TYPE_COLOR = { tool:'badge-brand', agent:'badge-green', function:'badge-purple' };
+
+const badge    = (cls,lbl,dot=true) => `<span class="badge ${cls}">${dot?'<span class="badge-dot"></span>':''}${lbl}</span>`;
+const stBadge  = s  => badge(STATUS_COLOR[s]||'badge-muted', s);
+const roleBadge= r  => badge(ROLE_COLOR[r]||'badge-muted', r, false);
+const typeBadge= t  => badge(TYPE_COLOR[t]||'badge-muted', t, false);
+
+/* ─── Overview ───────────────────────────────────────────────── */
+async function loadOverview() {
+  try {
+    const h = await api('GET','/health');
+    const c = h.concurrency || {};
+
+    document.getElementById('st-uptime').textContent = Math.round(h.uptime_seconds||0).toLocaleString() + 's';
+    document.getElementById('st-env').textContent    = h.environment || '—';
+    document.getElementById('st-execs').textContent  = (h.active_executions||0).toLocaleString();
+    document.getElementById('st-store').textContent  = h.store_backend + ' store';
+    document.getElementById('st-conc').textContent   = `${c.active||0} / ${c.max_concurrent||0}`;
+    document.getElementById('st-conc-sub').textContent = 'active / max';
+    document.getElementById('st-peak').textContent   = (c.peak_active||0).toLocaleString();
+    document.getElementById('st-util').textContent   = `${c.utilization_pct||0}% utilization`;
+
+    // Health body
+    const flags = [
+      ['RBAC',    h.rbac_enabled,    h.rbac_enabled    ? 'badge-green':'badge-muted'],
+      ['Audit',   h.audit_enabled,   h.audit_enabled   ? 'badge-green':'badge-muted'],
+      ['Webhooks',h.webhooks_enabled,h.webhooks_enabled ? 'badge-brand':'badge-muted'],
+      ['UI',      h.ui_enabled,      h.ui_enabled       ? 'badge-green':'badge-muted'],
+    ];
+    document.getElementById('health-body').innerHTML =
+      `<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 20px">
+        <div class="td-dim">Version</div><div style="font-weight:600;font-family:var(--mono);font-size:12px">${h.version}</div>
+        <div class="td-dim">Environment</div><div style="font-weight:600">${h.environment}</div>
+        <div class="td-dim">Store</div><div style="font-weight:600">${h.store_backend}</div>
+        ${flags.map(([l,v,c])=>`<div class="td-dim">${l}</div><div>${badge(c, v?'Enabled':'Off', false)}</div>`).join('')}
+      </div>`;
+
+    // Adapters
+    const adapters = h.adapters || [];
+    document.getElementById('adapter-body').innerHTML = adapters.length
+      ? adapters.map(a=>`<span class="badge badge-brand">${a}</span>`).join('')
+      : `<span style="font-size:12.5px;color:var(--text-tertiary)">No adapters loaded</span>`;
+
+    // Update health pill
+    const pill = document.getElementById('health-pill');
+    const healthy = h.status === 'healthy';
+    pill.className = 'health-pill' + (healthy ? '' : ' unhealthy');
+    document.getElementById('health-text').textContent = healthy ? 'Engine online' : 'Unhealthy';
+
+    document.getElementById('version-tag').textContent = 'v' + (h.version||'1.0.0');
+
+    // Plugin summary
+    try {
+      const pd = await api('GET','/afmx/plugins');
+      const tools = (pd.tools||[]).length, agents = (pd.agents||[]).length, fns = (pd.functions||[]).length;
+      document.getElementById('nb-exec').textContent = (tools+agents+fns).toString();
+      document.getElementById('plugin-summary').innerHTML = [
+        ['Tools', tools, 'badge-brand'], ['Agents', agents, 'badge-green'], ['Functions', fns, 'badge-purple'],
+      ].map(([l,n,c])=>`<span class="badge ${c}">${n} ${l}</span>`).join('');
+    } catch {}
+
+  } catch(e) {
+    const pill = document.getElementById('health-pill');
+    pill.className = 'health-pill unhealthy';
+    document.getElementById('health-text').textContent = 'Unreachable';
+    document.getElementById('health-body').innerHTML =
+      `<span style="color:var(--red);font-size:12.5px">${e.message}</span>`;
+  }
+  await loadExecInto('ov-exec-tbody', 8, false);
+}
+
+/* ─── Executions ─────────────────────────────────────────────── */
+async function loadExecutions() {
+  let url = '/afmx/executions?limit=60';
+  const s = (document.getElementById('ef-status')||{}).value;
+  const m = (document.getElementById('ef-matrix')||{}).value;
+  if (s) url += `&status_filter=${s}`;
+  if (m) url += `&matrix_name=${encodeURIComponent(m)}`;
+  await loadExecInto('exec-tbody', 60, true, url);
+}
+
+async function loadExecInto(tbodyId, limit, actions, url) {
+  const tbody = document.getElementById(tbodyId);
+  if (!tbody) return;
+  try {
+    const d = await api('GET', url || `/afmx/executions?limit=${limit}`);
+    const list = d.executions || [];
+    if (actions && document.getElementById('exec-count-label'))
+      document.getElementById('exec-count-label').textContent = `${list.length} result${list.length!==1?'s':''}`;
+
+    tbody.innerHTML = list.length === 0
+      ? `<tr class="empty-row"><td colspan="${actions?8:6}">No executions found</td></tr>`
+      : list.map(e => `<tr>
+          <td><span class="td-mono" onclick="showExecDetail('${e.execution_id}')">${shortId(e.execution_id)}</span></td>
+          <td><span class="chip">${e.matrix_name||'—'}</span></td>
+          <td>${stBadge(e.status)}</td>
+          ${actions
+            ? `<td class="td-muted">${e.completed_nodes||0}</td><td class="td-muted">${e.failed_nodes||0}</td>`
+            : `<td class="td-muted">${e.completed_nodes||0}/${e.total_nodes||0}</td>`}
+          <td class="td-dim">${fmtMs(e.duration_ms)}</td>
+          <td class="td-dim">${fmtTs(e.queued_at)}</td>
+          ${actions ? `<td>
+            <button class="btn btn-ghost btn-xs" onclick="showExecDetail('${e.execution_id}')">View</button>
+            ${['FAILED','PARTIAL','ABORTED','TIMEOUT'].includes(e.status)
+              ?`<button class="btn btn-ghost btn-xs" onclick="retryExec('${e.execution_id}')">Retry</button>`:''}
+          </td>` : ''}
+        </tr>`).join('');
+  } catch(e) {
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="8" style="color:var(--red)">${e.message}</td></tr>`;
+  }
+}
+
+/* ─── Execution Detail Modal ─────────────────────────────────── */
+async function showExecDetail(id) {
+  document.getElementById('modal-exec-id').textContent = id;
+  document.getElementById('modal-exec-body').innerHTML =
+    '<div style="text-align:center;padding:40px;color:var(--text-tertiary)">Loading…</div>';
+  document.getElementById('modal-exec-footer').innerHTML = '';
+  openModal('modal-exec');
+
+  try {
+    const d = await api('GET', `/afmx/result/${id}`);
+    const nodes = Object.values(d.node_results || {});
+
+    // Waterfall timing
+    const minStart = Math.min(...nodes.map(n=>n.started_at||Infinity));
+    const maxEnd   = Math.max(...nodes.map(n=>n.finished_at||0));
+    const totalDur = (maxEnd - minStart) * 1000 || 1;
+
+    const wfRows = nodes.map(n => {
+      const s = ((n.started_at||minStart) - minStart) * 1000;
+      const dur = n.duration_ms || 0;
+      const leftPct  = (s / totalDur * 100).toFixed(1);
+      const widthPct = Math.max(1, (dur / totalDur * 100)).toFixed(1);
+      const color = n.status === 'SUCCESS' ? 'var(--green)'
+                  : n.status === 'FAILED'  ? 'var(--red)'
+                  : n.status === 'SKIPPED' ? 'var(--bg-subtle)'
+                  : 'var(--brand)';
+      return `<div class="waterfall-row">
+        <div class="waterfall-name" title="${n.node_name||n.node_id}">${n.node_name||n.node_id}</div>
+        <div class="waterfall-bar-wrap">
+          <div class="waterfall-bar" style="left:${leftPct}%;width:${widthPct}%;background:${color}"></div>
+        </div>
+        <div class="waterfall-dur">${fmtMs(n.duration_ms)}</div>
+      </div>`;
+    }).join('');
+
+    // Trace list
+    const traceRows = nodes.map((n,i) => {
+      const bClass = n.status==='SUCCESS'?'ok': n.status==='FAILED'?'err': n.status==='SKIPPED'?'skip':'fb';
+      const icon   = n.status==='SUCCESS'?'✓': n.status==='FAILED'?'✕': n.status==='SKIPPED'?'—':'↩';
+      return `<div class="trace-row">
+        <div class="trace-bullet ${bClass}">${icon}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:500;color:var(--text-primary)">${n.node_name||n.node_id}</div>
+          ${n.error ? `<div style="font-size:11.5px;color:var(--red);margin-top:2px">${n.error}</div>` : ''}
+        </div>
+        ${stBadge(n.status)}
+        <div class="td-dim" style="white-space:nowrap">${fmtMs(n.duration_ms)}</div>
+        <div class="td-dim">×${n.attempt||1}</div>
+      </div>`;
+    }).join('');
+
+    document.getElementById('modal-exec-body').innerHTML = `
+      <!-- Summary strip -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px">
+        ${[['Matrix', `<span class="chip">${d.matrix_name}</span>`],
+           ['Status', stBadge(d.status)],
+           ['Duration', `<b>${fmtMs(d.duration_ms)}</b>`],
+           ['Nodes', `<b>${d.completed_nodes}/${d.total_nodes}</b><span class="td-dim"> (${d.failed_nodes} failed)</span>`]
+          ].map(([l,v])=>`<div style="background:var(--bg-base);border:1px solid var(--border);border-radius:var(--r-md);padding:10px 12px">
+            <div class="stat-label" style="margin-bottom:4px">${l}</div>
+            <div style="font-size:13px">${v}</div>
+          </div>`).join('')}
+      </div>
+      ${d.error ? `<div class="alert alert-error show" style="margin-bottom:12px">Node ${d.error_node_id||''}: ${d.error}</div>` : ''}
+
+      <!-- Tabs -->
+      <div class="tabs" style="margin-bottom:12px">
+        <button class="tab active" onclick="switchDetailTab(this,'dt-trace')">Node Trace</button>
+        <button class="tab" onclick="switchDetailTab(this,'dt-waterfall')">Timeline</button>
+      </div>
+
+      <!-- Trace view -->
+      <div id="dt-trace" style="margin-bottom:4px">${traceRows||'<div class="td-dim" style="padding:20px 0">No node results</div>'}</div>
+
+      <!-- Waterfall view -->
+      <div id="dt-waterfall" style="display:none" class="waterfall">${wfRows||'<div class="td-dim" style="padding:20px 0">No timing data</div>'}</div>
+    `;
+
+    document.getElementById('modal-exec-footer').innerHTML = `
+      <button class="btn btn-secondary btn-sm" onclick="streamExec('${id}')">Watch Stream</button>
+      ${['FAILED','PARTIAL','ABORTED','TIMEOUT'].includes(d.status)
+        ?`<button class="btn btn-secondary btn-sm" onclick="retryExec('${id}');closeModal('modal-exec')">Retry</button>`:''}
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('modal-exec')">Close</button>
+    `;
+  } catch(e) {
+    document.getElementById('modal-exec-body').innerHTML =
+      `<div class="alert alert-error show">${e.message}</div>`;
+  }
+}
+
+function switchDetailTab(btn, showId) {
+  btn.closest('.tabs').querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  ['dt-trace','dt-waterfall'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = id === showId ? '' : 'none';
+  });
+}
+
+async function retryExec(id) {
+  try {
+    const r = await api('POST', `/afmx/retry/${id}`);
+    toast(`Retry: ${shortId(r.new_execution_id)} — ${r.status}`, 'success');
+    loadExecutions();
+  } catch(e) { toast('Retry failed: ' + e.message, 'error'); }
+}
+
+function streamExec(id) {
+  document.getElementById('stream-exec-id').value = id;
+  closeModal('modal-exec');
+  goPage('stream');
+  startStream();
+}
+
+/* ─── Run Matrix ─────────────────────────────────────────────── */
+const TEMPLATES = {
+  echo: {
+    name:'echo-pipeline', mode:'SEQUENTIAL',
+    nodes:[{id:'n1',name:'echo',type:'TOOL',handler:'echo'},{id:'n2',name:'upper',type:'TOOL',handler:'upper'}],
+    edges:[{from:'n1',to:'n2'}],
+  },
+  agent: {
+    name:'agent-chain', mode:'SEQUENTIAL',
+    nodes:[{id:'n1',name:'analyst',type:'AGENT',handler:'analyst_agent'},{id:'n2',name:'writer',type:'AGENT',handler:'writer_agent'},{id:'n3',name:'reviewer',type:'AGENT',handler:'reviewer_agent'}],
+    edges:[{from:'n1',to:'n2'},{from:'n2',to:'n3'}],
+  },
+  parallel: {
+    name:'parallel-fan', mode:'PARALLEL',
+    nodes:[{id:'n1',name:'echo-a',type:'TOOL',handler:'echo'},{id:'n2',name:'echo-b',type:'TOOL',handler:'echo'},{id:'n3',name:'concat',type:'TOOL',handler:'concat'}],
+    edges:[{from:'n1',to:'n3'},{from:'n2',to:'n3'}],
+  },
+  retry: {
+    name:'retry-fallback', mode:'SEQUENTIAL',
+    nodes:[{id:'n1',name:'flaky',type:'TOOL',handler:'flaky',retry_policy:{retries:3}},{id:'n2',name:'fallback',type:'TOOL',handler:'fallback_recovery'}],
+    edges:[{from:'n1',to:'n2'}],
+  },
+};
+
+function loadTpl(name) {
+  const t = TEMPLATES[name];
+  if (!t) return;
+  document.getElementById('run-matrix').value = JSON.stringify(t, null, 2);
+  document.getElementById('run-input').value = JSON.stringify({query:'hello afmx'});
+}
+
+async function runMatrix(isAsync) {
+  clearAlert('run-alert');
+  document.getElementById('run-badge').innerHTML = '';
+
+  let matrix, input, vars;
+  try { matrix = JSON.parse(document.getElementById('run-matrix').value || ''); }
+  catch { setAlert('run-alert','Invalid matrix JSON','error'); return; }
+  try { input = document.getElementById('run-input').value ? JSON.parse(document.getElementById('run-input').value) : null; }
+  catch { setAlert('run-alert','Invalid input JSON','error'); return; }
+  try { vars = document.getElementById('run-vars').value ? JSON.parse(document.getElementById('run-vars').value) : null; }
+  catch { setAlert('run-alert','Invalid variables JSON','error'); return; }
+
+  document.getElementById('run-result').textContent = 'Executing…';
+
+  try {
+    const r = await api('POST', isAsync ? '/afmx/execute/async' : '/afmx/execute', {
+      matrix, input, variables: vars,
+      triggered_by: document.getElementById('run-trigger').value || 'dashboard',
+    });
+    document.getElementById('run-result').textContent = JSON.stringify(r, null, 2);
+    document.getElementById('run-badge').innerHTML = stBadge(r.status || 'QUEUED');
+
+    if (isAsync && r.execution_id) {
+      setAlert('run-alert', `Queued ${shortId(r.execution_id)} — switch to Live Stream to watch`, 'info');
+    } else {
+      setAlert('run-alert', `${r.status} in ${fmtMs(r.duration_ms)} · ${r.completed_nodes}/${r.total_nodes} nodes`, 'success');
+    }
+  } catch(e) {
+    setAlert('run-alert', e.message, 'error');
+    document.getElementById('run-result').textContent = e.message;
+  }
+}
+
+async function validateMatrix() {
+  let matrix;
+  try { matrix = JSON.parse(document.getElementById('run-matrix').value || ''); }
+  catch { setAlert('run-alert','Invalid JSON','error'); return; }
+  try {
+    const r = await api('POST', '/afmx/validate', {matrix});
+    if (r.valid) setAlert('run-alert', `Valid ✓ — ${r.node_count} nodes, ${r.edge_count} edges · order: ${r.execution_order.join(' → ')}`, 'success');
+    else setAlert('run-alert', 'Invalid: ' + r.errors.join('; '), 'error');
+  } catch(e) { setAlert('run-alert', e.message, 'error'); }
+}
+
+function copyResult() {
+  const txt = document.getElementById('run-result').textContent;
+  navigator.clipboard.writeText(txt).then(() => toast('Copied to clipboard', 'info'));
+}
+
+/* ─── Live Stream ────────────────────────────────────────────── */
+function startStream() {
+  const id = document.getElementById('stream-exec-id').value.trim();
+  if (!id) { toast('Enter an execution ID', 'error'); return; }
+  stopStream();
+  streamEvtCount = 0;
+
+  const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+  ws = new WebSocket(`${proto}://${location.host}/afmx/ws/stream/${id}`);
+
+  setStreamPill('sp-connect','Connecting…');
+
+  ws.onopen = () => setStreamPill('sp-live', `Streaming ${id.substring(0,10)}…`);
+
+  ws.onmessage = e => {
+    let msg; try { msg = JSON.parse(e.data); } catch { return; }
+    if (msg.type === 'ping') return;
+
+    streamEvtCount++;
+    document.getElementById('stream-evt-count').textContent = `${streamEvtCount} events`;
+
+    const box = document.getElementById('stream-box');
+    if (streamEvtCount === 1) box.innerHTML = '';
+
+    const colorMap = {
+      'execution.completed':'var(--green)',  'execution.failed':'var(--red)',
+      'execution.started':'var(--brand)',    'node.completed':'var(--green)',
+      'node.failed':'var(--red)',            'node.started':'var(--cyan)',
+      'node.retrying':'var(--amber)',        'node.fallback':'var(--purple)',
+      'circuit_breaker.open':'var(--red)',   'circuit_breaker.closed':'var(--green)',
+      'eof':'var(--text-tertiary)',          'connected':'var(--brand)',
+    };
+    const color = colorMap[msg.type] || 'var(--text-secondary)';
+
+    const row = document.createElement('div');
+    row.className = 'log-entry';
+    row.innerHTML = `
+      <span class="log-ts">${new Date().toLocaleTimeString()}</span>
+      <span class="log-type" style="color:${color}">${msg.type||'event'}</span>
+      <span class="log-data">${JSON.stringify(msg.data||{})}</span>`;
+    box.appendChild(row);
+    box.scrollTop = box.scrollHeight;
+
+    if (msg.type === 'eof') { setStreamPill('sp-done', 'Complete'); ws = null; }
+  };
+
+  ws.onclose = () => { if (ws) setStreamPill('sp-idle', 'Disconnected'); ws = null; };
+  ws.onerror = () => setStreamPill('sp-error', 'Error');
+}
+
+function stopStream() {
+  if (ws) { ws.close(); ws = null; }
+  setStreamPill('sp-idle','Disconnected');
+}
+
+function clearStream() {
+  document.getElementById('stream-box').innerHTML = '<div class="log-empty">Cleared</div>';
+  streamEvtCount = 0;
+  document.getElementById('stream-evt-count').textContent = '';
+}
+
+function setStreamPill(cls, label) {
+  const el = document.getElementById('stream-pill');
+  el.className = `stream-pill ${cls}`;
+  const dotColors = { 'sp-idle':'var(--text-tertiary)', 'sp-live':'var(--green)', 'sp-done':'var(--brand)', 'sp-error':'var(--red)', 'sp-connect':'var(--amber)' };
+  el.innerHTML = `<span class="dot" style="background:${dotColors[cls]||'var(--text-tertiary)'}"></span>${label}`;
+}
+
+/* ─── Matrices ───────────────────────────────────────────────── */
+async function loadMatrices() {
+  const tbody = document.getElementById('matrix-tbody');
+  try {
+    const d = await api('GET', '/afmx/matrices');
+    tbody.innerHTML = !(d.matrices||[]).length
+      ? '<tr class="empty-row"><td colspan="6">No saved matrices — run a matrix and save it via API</td></tr>'
+      : d.matrices.map(m=>`<tr>
+          <td><b>${m.name}</b></td>
+          <td><span class="chip">${m.version||'1.0.0'}</span></td>
+          <td class="td-dim">${m.description||'—'}</td>
+          <td>${(m.tags||[]).map(t=>`<span class="badge badge-muted" style="font-size:10px">${t}</span>`).join(' ')||'—'}</td>
+          <td class="td-dim">${fmtDate(m.created_at)}</td>
+          <td>
+            <button class="btn btn-ghost btn-xs" onclick="runNamed('${m.name}')">▶ Run</button>
+            <button class="btn btn-danger btn-xs" onclick="deleteMatrix('${m.name}')">Delete</button>
+          </td>
+        </tr>`).join('');
+  } catch(e) { tbody.innerHTML = `<tr class="empty-row"><td colspan="6" style="color:var(--red)">${e.message}</td></tr>`; }
+}
+
+async function runNamed(name) {
+  try {
+    const r = await api('POST', `/afmx/matrices/${name}/execute`, {triggered_by:'dashboard'});
+    toast(`'${name}' → ${r.status} ${fmtMs(r.duration_ms)}`, r.status==='COMPLETED'?'success':'error');
+  } catch(e) { toast('Failed: ' + e.message, 'error'); }
+}
+
+async function deleteMatrix(name) {
+  if (!confirm(`Delete '${name}'?`)) return;
+  try { await api('DELETE', `/afmx/matrices/${name}`); loadMatrices(); }
+  catch(e) { toast('Delete failed: '+e.message, 'error'); }
+}
+
+/* ─── Plugins ────────────────────────────────────────────────── */
+async function loadPlugins() {
+  try {
+    const d = await api('GET', '/afmx/plugins');
+    const all = [...(d.tools||[]), ...(d.agents||[]), ...(d.functions||[])];
+
+    document.getElementById('plugin-stats').innerHTML = [
+      ['Tools', d.tools?.length||0, 'var(--brand)'],
+      ['Agents', d.agents?.length||0, 'var(--green)'],
+      ['Functions', d.functions?.length||0, 'var(--purple)'],
+    ].map(([l,n,c])=>`<div class="card" style="padding:14px 18px">
+      <div class="stat-label">${l}</div>
+      <div class="stat-value" style="font-size:24px;color:${c}">${n}</div>
+    </div>`).join('');
+
+    document.getElementById('plugin-tbody').innerHTML = all.length === 0
+      ? '<tr class="empty-row"><td colspan="5">No handlers registered</td></tr>'
+      : all.map(p=>`<tr>
+          <td><span class="chip">${p.key}</span></td>
+          <td>${typeBadge(p.type)}</td>
+          <td class="td-dim">${p.description||'—'}</td>
+          <td>${(p.tags||[]).map(t=>`<span class="badge badge-muted" style="font-size:10px">${t}</span>`).join(' ')||'—'}</td>
+          <td>${p.enabled ? badge('badge-green','Active',false) : badge('badge-red','Disabled',false)}</td>
+        </tr>`).join('');
+  } catch(e) {
+    document.getElementById('plugin-tbody').innerHTML =
+      `<tr class="empty-row"><td colspan="5" style="color:var(--red)">${e.message}</td></tr>`;
+  }
+}
+
+/* ─── Audit ──────────────────────────────────────────────────── */
+async function loadAudit() {
+  let url = '/afmx/audit?limit=100';
+  const a = (document.getElementById('af-action')||{}).value;
+  const o = (document.getElementById('af-outcome')||{}).value;
+  const ac = (document.getElementById('af-actor')||{}).value;
+  if (a)  url += `&action=${a}`;
+  if (o)  url += `&outcome=${o}`;
+  if (ac) url += `&actor=${encodeURIComponent(ac)}`;
+
+  const tbody = document.getElementById('audit-tbody');
+  try {
+    const d = await api('GET', url);
+    tbody.innerHTML = !(d.events||[]).length
+      ? '<tr class="empty-row"><td colspan="7">No audit events</td></tr>'
+      : d.events.map(e => {
+          const oc = e.outcome==='success'?'badge-green':e.outcome==='failure'?'badge-red':'badge-amber';
+          return `<tr>
+            <td class="td-dim" style="white-space:nowrap">${fmtDate(e.timestamp)}</td>
+            <td><span class="chip" style="font-size:11px">${e.action}</span></td>
+            <td><b>${e.actor||'—'}</b></td>
+            <td>${roleBadge(e.actor_role||'SYSTEM')}</td>
+            <td class="td-dim">${e.resource_type}${e.resource_id?':'+e.resource_id.substring(0,8):''}</td>
+            <td>${badge(oc, e.outcome, false)}</td>
+            <td class="td-dim">${e.ip_address||'—'}</td>
+          </tr>`;
+        }).join('');
+  } catch(e) {
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="7" style="color:var(--red)">${e.message}</td></tr>`;
+  }
+}
+
+/* ─── API Keys ───────────────────────────────────────────────── */
+async function loadKeys() {
+  const tbody = document.getElementById('keys-tbody');
+  clearAlert('keys-alert');
+  try {
+    const d = await api('GET', '/afmx/admin/keys');
+    document.getElementById('keys-count-badge').innerHTML =
+      `<span class="badge badge-brand">${d.count} key${d.count!==1?'s':''}</span>`;
+    tbody.innerHTML = !(d.keys||[]).length
+      ? '<tr class="empty-row"><td colspan="8">No API keys yet</td></tr>'
+      : d.keys.map(k=>`<tr>
+          <td>
+            <b>${k.name}</b>
+            ${k.description?`<div class="td-dim" style="margin-top:1px">${k.description}</div>`:''}
+          </td>
+          <td>${roleBadge(k.role)}</td>
+          <td class="td-muted">${k.tenant_id}</td>
+          <td><span class="chip">${k.key}</span></td>
+          <td class="td-dim">${fmtDate(k.created_at)}</td>
+          <td class="td-dim">${k.last_used_at ? fmtDate(k.last_used_at) : '<span style="color:var(--text-tertiary)">Never</span>'}</td>
+          <td>${k.active ? badge('badge-green','Active',false) : badge('badge-red','Revoked',false)}</td>
+          <td>${k.active ? `<button class="btn btn-danger btn-xs" onclick="revokeKey('${k.id}','${k.name}')">Revoke</button>` : ''}</td>
+        </tr>`).join('');
+  } catch(e) {
+    if (/401|403/.test(e.message))
+      setAlert('keys-alert','RBAC enabled — enter an ADMIN key in the top bar','warn');
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="8" style="color:var(--red)">${e.message}</td></tr>`;
+  }
+}
+
+function openCreateKey() {
+  ['nk-name','nk-desc','nk-expires'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  document.getElementById('nk-tenant').value = 'default';
+  document.getElementById('nk-role').value = 'DEVELOPER';
+  clearAlert('create-key-alert');
+  document.getElementById('key-reveal-box').className = 'key-reveal';
+  openModal('modal-create-key');
+}
+
+async function createKey() {
+  const name = document.getElementById('nk-name').value.trim();
+  if (!name) { setAlert('create-key-alert','Name is required','error'); return; }
+  const body = {
+    name,
+    role: document.getElementById('nk-role').value,
+    tenant_id: document.getElementById('nk-tenant').value.trim() || 'default',
+    description: document.getElementById('nk-desc').value.trim(),
+  };
+  const exp = document.getElementById('nk-expires').value;
+  if (exp) body.expires_in_days = parseFloat(exp);
+
+  try {
+    const r = await api('POST', '/afmx/admin/keys', body);
+    document.getElementById('key-reveal-val').textContent = r.key;
+    document.getElementById('key-reveal-box').className = 'key-reveal show';
+    loadKeys();
+  } catch(e) { setAlert('create-key-alert', e.message, 'error'); }
+}
+
+async function revokeKey(id, name) {
+  if (!confirm(`Revoke key '${name}'?\n\nAll API calls using this key will be rejected immediately.`)) return;
+  try {
+    await api('POST', `/afmx/admin/keys/${id}/revoke`);
+    toast(`Key '${name}' revoked`, 'success');
+    loadKeys();
+  } catch(e) { toast('Revoke failed: '+e.message, 'error'); }
+}
+
+/* ─── Modal helpers ──────────────────────────────────────────── */
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+document.querySelectorAll('.modal-overlay').forEach(o =>
+  o.addEventListener('click', e => { if (e.target===o) o.classList.remove('open'); }));
+
+document.addEventListener('keydown', e => {
+  if (e.key==='Escape') {
+    document.querySelectorAll('.modal-overlay.open').forEach(m=>m.classList.remove('open'));
+    closePalette();
+  }
+  if ((e.metaKey||e.ctrlKey) && e.key==='k') { e.preventDefault(); openPalette(); }
+  if (!e.metaKey && !e.ctrlKey && !e.altKey && e.key==='r' && document.activeElement === document.body) { e.preventDefault(); refresh(); }
+});
+
+/* ─── Alert helpers ──────────────────────────────────────────── */
+function setAlert(id, msg, type) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = msg;
+  el.className = `alert show alert-${type}`;
+}
+function clearAlert(id) {
+  const el = document.getElementById(id);
+  if (el) el.className = 'alert';
+}
+
+/* ─── Toast ──────────────────────────────────────────────────── */
+function toast(msg, type='info') {
+  const container = document.getElementById('toast');
+  const item = document.createElement('div');
+  item.className = `toast-item t-${type}`;
+  const icons = {success:'✓', error:'✕', info:'ℹ'};
+  item.innerHTML = `<span style="font-size:14px">${icons[type]||'ℹ'}</span><span>${msg}</span>`;
+  container.appendChild(item);
+  setTimeout(() => { item.style.opacity='0'; item.style.transition='opacity .3s'; setTimeout(()=>item.remove(),300); }, 3500);
+}
+
+/* ─── Theme toggle ───────────────────────────────────────────── */
+function toggleTheme() {
+  const cur = document.documentElement.getAttribute('data-theme');
+  const next = cur === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('afmx-theme', next);
+  const icon = document.getElementById('theme-icon');
+  icon.innerHTML = next === 'dark'
+    ? '<path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.9 4.9l1.4 1.4M13.7 13.7l1.4 1.4M4.9 15.1l1.4-1.4M13.7 6.3l1.4-1.4"/><circle cx="10" cy="10" r="3.5"/>'
+    : '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+}
+
+/* ─── Command Palette ────────────────────────────────────────── */
+const PALETTE_COMMANDS = [
+  { name:'Overview',      desc:'Engine health & stats',         icon:'⬛', fn:()=>goPage('overview') },
+  { name:'Executions',    desc:'Browse execution history',      icon:'≡',  fn:()=>goPage('executions') },
+  { name:'Live Stream',   desc:'Real-time WebSocket events',    icon:'~',  fn:()=>goPage('stream') },
+  { name:'Run Matrix',    desc:'Execute a matrix definition',   icon:'▶',  fn:()=>goPage('run') },
+  { name:'Saved Matrices',desc:'Server-side matrix store',      icon:'☰',  fn:()=>goPage('matrices') },
+  { name:'Plugins',       desc:'Registered handler registry',   icon:'★',  fn:()=>goPage('plugins') },
+  { name:'Audit Log',     desc:'Full audit trail',              icon:'⊞',  fn:()=>goPage('audit') },
+  { name:'API Keys',      desc:'RBAC key management',           icon:'⚿',  fn:()=>goPage('keys') },
+  { name:'Load Echo Template',desc:'Load echo pipeline',        icon:'↺',  fn:()=>{goPage('run');loadTpl('echo');} },
+  { name:'Load Agent Template',desc:'Load agent chain',         icon:'↺',  fn:()=>{goPage('run');loadTpl('agent');} },
+  { name:'Toggle Theme',  desc:'Switch dark / light mode',      icon:'◑',  fn:toggleTheme },
+  { name:'Open API Docs', desc:'Swagger docs in new tab',       icon:'↗',  fn:()=>window.open('/docs','_blank') },
+  { name:'Refresh',       desc:'Reload current page data',      icon:'⟳',  fn:refresh },
+];
+
+let _paletteFiltered = [...PALETTE_COMMANDS];
+
+function openPalette() {
+  document.getElementById('palette-input').value = '';
+  _paletteIdx = 0;
+  _paletteFiltered = [...PALETTE_COMMANDS];
+  renderPalette();
+  document.getElementById('palette').classList.add('open');
+  setTimeout(()=>document.getElementById('palette-input').focus(), 60);
+}
+
+function closePalette() { document.getElementById('palette').classList.remove('open'); }
+
+function filterPalette(q) {
+  q = q.toLowerCase();
+  _paletteFiltered = PALETTE_COMMANDS.filter(c =>
+    c.name.toLowerCase().includes(q) || c.desc.toLowerCase().includes(q));
+  _paletteIdx = 0;
+  renderPalette();
+}
+
+function renderPalette() {
+  const container = document.getElementById('palette-results');
+  container.innerHTML = _paletteFiltered.map((c,i)=>
+    `<div class="palette-item ${i===_paletteIdx?'selected':''}" onclick="runPaletteItem(${i})">
+      <div class="pi-icon">${c.icon}</div>
+      <div>
+        <div class="pi-name">${c.name}</div>
+        <div class="pi-desc">${c.desc}</div>
+      </div>
+    </div>`).join('') || '<div style="padding:20px;text-align:center;color:var(--text-tertiary);font-size:13px">No results</div>';
+}
+
+function runPaletteItem(i) {
+  const cmd = _paletteFiltered[i];
+  if (cmd) { closePalette(); cmd.fn(); }
+}
+
+function palettKey(e) {
+  if (e.key==='ArrowDown') { _paletteIdx = Math.min(_paletteIdx+1, _paletteFiltered.length-1); renderPalette(); }
+  if (e.key==='ArrowUp')   { _paletteIdx = Math.max(_paletteIdx-1, 0); renderPalette(); }
+  if (e.key==='Enter')     { runPaletteItem(_paletteIdx); }
+}
+
+/* ─── Init ───────────────────────────────────────────────────── */
+(function init() {
+  const saved = localStorage.getItem('afmx-theme');
+  if (saved) document.documentElement.setAttribute('data-theme', saved);
+  loadOverview();
+  setInterval(loadOverview, 30000);  // auto-refresh every 30s
+})();
+</script>
+</body>
+</html>
