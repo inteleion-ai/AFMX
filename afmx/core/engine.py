@@ -1,15 +1,39 @@
+# Copyright 2026 Agentdyne9
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 """
-AFMX Execution Engine — production version.
+AFMX Execution Engine
+======================
+The deterministic execution fabric for the AFMX runtime.  Dispatches
+``ExecutionMatrix`` runs across four execution modes (SEQUENTIAL, PARALLEL,
+HYBRID, DIAGONAL) while enforcing per-node fault tolerance (retry, circuit
+breaker, fallback), cognitive model routing, and structured event emission.
 
-Fixes applied in this version:
-  - AgentDispatcher.acquire() / release() now called around AGENT node execution
-    so max_concurrent limits on agents are actually enforced.
-  - checkpoint_store accepted and passed through to NodeExecutor (already wired
-    at startup; engine keeps a reference for future resume support).
-  - _run_sequential: skips nodes already in record.node_results (prevents
-    fallback nodes from double-executing as standalone nodes).
-  - _execute_node: marks the fallback node in record.node_results with
-    NodeStatus.FALLBACK so the sequential loop knows it already ran.
+Design invariants
+-----------------
+* **Deterministic**: same matrix + context → same execution path.
+* **Non-intelligent**: the engine does NOT plan, reason, or call LLMs.
+* **Composable**: all sub-systems (router, dispatcher, executor) are injected.
+* **Observable**: every state transition emits a typed ``AFMXEvent``.
+* **Fault-tolerant**: retry, fallback, circuit breaker at individual node level.
+
+Changelog (v1.2.x)
+------------------
+v1.2.1  ``_run_diagonal()`` now emits ``EventType.LAYER_STARTED`` /
+        ``EventType.LAYER_COMPLETED`` for each cognitive-layer batch instead
+        of overloading ``EventType.EXECUTION_STARTED``.  Webhook receivers
+        and Agentability consumers can now distinguish a layer boundary from
+        a run start without inspecting the ``data`` payload.
 """
 from __future__ import annotations
 
@@ -17,13 +41,14 @@ import asyncio
 import logging
 from typing import Any, Callable, Dict, List, Optional, Set
 
+from afmx.core.cognitive_router import CognitiveModelRouter
 from afmx.core.dispatcher import AgentDispatcher, AgentRegistration, DispatchRequest
 from afmx.core.executor import HandlerRegistry, NodeExecutor
 from afmx.core.retry import RetryManager
 from afmx.core.router import ToolRouter
 from afmx.models.execution import ExecutionContext, ExecutionRecord, ExecutionStatus
 from afmx.models.matrix import AbortPolicy, ExecutionMatrix, ExecutionMode
-from afmx.models.node import Node, NodeResult, NodeStatus, NodeType
+from afmx.models.node import CognitiveLayer, Node, NodeResult, NodeStatus, NodeType
 from afmx.observability.events import AFMXEvent, EventBus, EventType
 
 logger = logging.getLogger(__name__)
@@ -49,12 +74,14 @@ class AFMXEngine:
         agent_dispatcher: Optional[AgentDispatcher] = None,
         event_bus: Optional[EventBus] = None,
         node_executor: Optional[NodeExecutor] = None,
+        cognitive_router: Optional[CognitiveModelRouter] = None,
     ):
         self.event_bus = event_bus or EventBus()
         self.retry_manager = RetryManager(event_bus=self.event_bus)
         self.node_executor = node_executor or NodeExecutor(self.retry_manager)
         self.tool_router = tool_router or ToolRouter()
         self.agent_dispatcher = agent_dispatcher or AgentDispatcher()
+        self.cognitive_router = cognitive_router or CognitiveModelRouter()
 
     # ─── Public API ───────────────────────────────────────────────────────────
 
@@ -150,6 +177,8 @@ class AFMXEngine:
             await self._run_parallel(matrix, context, record, node_index)
         elif matrix.mode == ExecutionMode.HYBRID:
             await self._run_hybrid(matrix, context, record, node_index)
+        elif matrix.mode == ExecutionMode.DIAGONAL:
+            await self._run_diagonal(matrix, context, record, topo_order, node_index)
         else:
             raise ValueError(f"Unknown execution mode: {matrix.mode}")
 
@@ -281,6 +310,142 @@ class AFMXEngine:
                         )
                         return
 
+    # ─── Diagonal (cognitive-layer grouped) ───────────────────────────────────
+
+    async def _run_diagonal(
+        self,
+        matrix: ExecutionMatrix,
+        context: ExecutionContext,
+        record: ExecutionRecord,
+        topo_order: List[str],
+        node_index: Dict[str, Node],
+    ) -> None:
+        """
+        DIAGONAL execution mode — v1.1.
+
+        Groups nodes by CognitiveLayer and runs each layer's nodes in parallel,
+        proceeding through layers in the canonical cognitive order:
+
+            PERCEIVE → RETRIEVE → REASON → PLAN → ACT → EVALUATE → REPORT
+
+        Nodes without a cognitive_layer are collected into a final catch-all
+        batch and run after all layer batches complete.
+
+        Within each layer, nodes still run in parallel under the matrix's
+        max_parallelism semaphore — so a layer with 3 nodes fires all 3 at once.
+
+        This mirrors how a human expert team works:
+          First everyone perceives the problem together,
+          then everyone retrieves what they know,
+          then the analysts reason,
+          then the planners plan,
+          then the operators act,
+          then the verifiers evaluate.
+        """
+        LAYER_ORDER: List[Optional[CognitiveLayer]] = [
+            CognitiveLayer.PERCEIVE,
+            CognitiveLayer.RETRIEVE,
+            CognitiveLayer.REASON,
+            CognitiveLayer.PLAN,
+            CognitiveLayer.ACT,
+            CognitiveLayer.EVALUATE,
+            CognitiveLayer.REPORT,
+            None,  # unclassified — runs last
+        ]
+
+        # Bucket nodes by their cognitive_layer (or None)
+        layer_buckets: Dict[Optional[str], List[str]] = {}
+        for nid in topo_order:
+            node = node_index.get(nid)
+            key  = node.cognitive_layer if node else None   # str or None (use_enum_values)
+            layer_buckets.setdefault(key, []).append(nid)
+
+        sem = asyncio.Semaphore(matrix.max_parallelism)
+
+        for layer in LAYER_ORDER:
+            if record.status in (ExecutionStatus.FAILED, ExecutionStatus.ABORTED):
+                break
+
+            # Match enum value to string key (pydantic use_enum_values=True stores str)
+            bucket_key = layer.value if layer is not None else None
+            batch      = layer_buckets.get(bucket_key, [])
+            if not batch:
+                continue
+
+            layer_label = bucket_key or "unclassified"
+            logger.debug(
+                f"[Engine:DIAGONAL] Layer={layer_label} "
+                f"batch={len(batch)} nodes"
+            )
+
+            # v1.2.1: Use dedicated LAYER_STARTED event instead of overloading
+            # EXECUTION_STARTED — consumers can now distinguish run start from
+            # cognitive-layer boundaries without inspecting data["diagonal_layer"].
+            await self.event_bus.emit(AFMXEvent(
+                type=EventType.LAYER_STARTED,
+                execution_id=record.id,
+                matrix_id=record.matrix_id,
+                data={"layer": layer_label, "batch_size": len(batch)},
+            ))
+
+            async def _bounded(
+                nid:   str,
+                _mat:  ExecutionMatrix   = matrix,
+                _ctx:  ExecutionContext  = context,
+                _rec:  ExecutionRecord   = record,
+                _idx:  Dict[str, Node]   = node_index,
+                _sem:  asyncio.Semaphore = sem,
+            ) -> Optional[NodeResult]:
+                node = _idx.get(nid)
+                if not node or nid in _rec.node_results:
+                    return None
+                should_skip, reason = self._should_skip_node(nid, _mat, _ctx, _rec)
+                if should_skip:
+                    logger.debug(f"[Engine:DIAGONAL] Skipping '{node.name}': {reason}")
+                    await self._mark_node_skipped(nid, _idx, _rec)
+                    return None
+                async with _sem:
+                    return await self._execute_node(node, _mat, _ctx, _rec)
+
+            batch_results = await asyncio.gather(
+                *[_bounded(nid) for nid in batch],
+                return_exceptions=True,
+            )
+
+            layer_success = 0
+            layer_failed  = 0
+            for res in batch_results:
+                if isinstance(res, Exception):
+                    layer_failed += 1
+                    record.failed_nodes += 1
+                    if matrix.abort_policy in _ABORT_POLICIES:
+                        record.mark_failed(
+                            f"[DIAGONAL:{layer_label}] {res}"
+                        )
+                        return
+                elif res is not None and res.is_terminal_failure:
+                    layer_failed += 1
+                    if matrix.abort_policy in _ABORT_POLICIES:
+                        record.mark_failed(
+                            error=f"[DIAGONAL:{layer_label}] '{res.node_name}' failed",
+                            error_node_id=res.node_id,
+                        )
+                        return
+                elif res is not None and res.is_success:
+                    layer_success += 1
+
+            # v1.2.1: emit LAYER_COMPLETED so consumers know the layer finished.
+            await self.event_bus.emit(AFMXEvent(
+                type=EventType.LAYER_COMPLETED,
+                execution_id=record.id,
+                matrix_id=record.matrix_id,
+                data={
+                    "layer":   layer_label,
+                    "success": layer_success,
+                    "failed":  layer_failed,
+                },
+            ))
+
     # ─── Node Execution ───────────────────────────────────────────────────────
 
     async def _execute_node(
@@ -290,10 +455,21 @@ class AFMXEngine:
         context: ExecutionContext,
         record: ExecutionRecord,
     ) -> NodeResult:
+        # v1.1: Inject cognitive routing metadata before execution
+        if node.cognitive_layer:
+            self.cognitive_router.inject_hint(node, context)
+
         await self.event_bus.emit(AFMXEvent(
             type=EventType.NODE_STARTED,
             execution_id=record.id, matrix_id=record.matrix_id,
-            data={"node_id": node.id, "node_name": node.name, "type": node.type},
+            data={
+                "node_id": node.id,
+                "node_name": node.name,
+                "type": node.type,
+                "cognitive_layer": node.cognitive_layer,
+                "agent_role": node.agent_role,
+                "model_tier": context.metadata.get("__model_tier__"),
+            },
         ))
 
         # FIX: resolve handler AND agent registration together so we can
@@ -357,7 +533,12 @@ class AFMXEngine:
         if node_result.is_success and node_result.output is not None:
             context.set_node_output(node.id, node_result.output)
 
-        record.node_results[node.id] = node_result.model_dump()
+        # v1.1: capture cognitive coordinates in the node result for observability
+        node_result.cognitive_layer = node.cognitive_layer
+        node_result.agent_role      = node.agent_role
+
+        node_result_dict = node_result.model_dump()
+        record.node_results[node.id] = node_result_dict
         if node_result.is_success:
             record.completed_nodes += 1
         elif node_result.is_terminal_failure:
@@ -370,14 +551,17 @@ class AFMXEngine:
             ),
             execution_id=record.id, matrix_id=record.matrix_id,
             data={
-                "node_id": node.id,
-                "node_name": node.name,
-                "node_type": node.type,
-                "status": node_result.status,
-                "duration_ms": node_result.duration_ms,
-                "error": node_result.error,
-                "attempt": node_result.attempt,
-                "fallback_used": node_result.metadata.get("fallback_used", False),
+                "node_id":        node.id,
+                "node_name":      node.name,
+                "node_type":      node.type,
+                "status":         node_result.status,
+                "duration_ms":    node_result.duration_ms,
+                "error":          node_result.error,
+                "attempt":        node_result.attempt,
+                "fallback_used":  node_result.metadata.get("fallback_used", False),
+                "cognitive_layer":node.cognitive_layer,
+                "agent_role":     node.agent_role,
+                "model_tier":     context.metadata.get("__model_tier__"),
             },
         ))
         return node_result

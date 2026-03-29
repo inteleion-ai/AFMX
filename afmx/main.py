@@ -129,7 +129,21 @@ class AFMXApplication:
             WebhookNotifier(url=settings.WEBHOOK_URL, events=settings.WEBHOOK_EVENTS, secret=settings.WEBHOOK_SECRET, timeout_seconds=settings.WEBHOOK_TIMEOUT_SECONDS, retries=settings.WEBHOOK_RETRIES).attach_to_event_bus(self.event_bus)
 
         self._node_executor = NodeExecutor(retry_manager=self._retry_manager, hook_registry=self.hook_registry, variable_resolver=self.variable_resolver, checkpoint_store=self.checkpoint_store)
-        self.engine = AFMXEngine(tool_router=self.tool_router, agent_dispatcher=self.agent_dispatcher, event_bus=self.event_bus, node_executor=self._node_executor)
+
+        # v1.1: Cognitive Model Router — reads cheap/premium model from settings
+        from afmx.core.cognitive_router import CognitiveModelRouter
+        self._cognitive_router = CognitiveModelRouter(
+            cheap_model=settings.COGNITIVE_CHEAP_MODEL,
+            premium_model=settings.COGNITIVE_PREMIUM_MODEL,
+        )
+
+        self.engine = AFMXEngine(
+            tool_router=self.tool_router,
+            agent_dispatcher=self.agent_dispatcher,
+            event_bus=self.event_bus,
+            node_executor=self._node_executor,
+            cognitive_router=self._cognitive_router,
+        )
 
         try:
             import afmx.startup_handlers  # noqa: F401

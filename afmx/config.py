@@ -192,6 +192,12 @@ class AFMXSettings(BaseSettings):
     CORS_ALLOW_METHODS:     List[str] = ["*"]
     CORS_ALLOW_HEADERS:     List[str] = ["*"]
 
+    # ── v1.1: Cognitive Model Router ─────────────────────────────────────────
+    # Controls which LLM model is used at each cognitive layer.
+    # Override these to match your deployment (any model string your LLM client accepts).
+    COGNITIVE_CHEAP_MODEL:   str = "claude-haiku-4-5-20251001"
+    COGNITIVE_PREMIUM_MODEL: str = "claude-opus-4-6"
+
     # ── Agentability observability integration ────────────────────────────────
     # Set AFMX_AGENTABILITY_ENABLED=true to activate.
     # Requires: pip install agentability   (zero-overhead no-op if missing)

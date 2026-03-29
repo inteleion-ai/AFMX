@@ -11,6 +11,8 @@ import Matrices      from './pages/Matrices'
 import Plugins       from './pages/Plugins'
 import Audit         from './pages/Audit'
 import Keys          from './pages/Keys'
+import MatrixView    from './pages/MatrixView'
+import Domains       from './pages/Domains'
 import ErrorBoundary from './components/ui/ErrorBoundary'
 
 // ─── Router basename ─────────────────────────────────────────────────────────
@@ -62,6 +64,8 @@ export default function App() {
               <Route path="plugins"    element={<Plugins />}    />
               <Route path="audit"      element={<Audit />}      />
               <Route path="keys"       element={<Keys />}       />
+              <Route path="matrix"     element={<MatrixView />} />
+              <Route path="domains"    element={<Domains />}    />
               {/* Catch-all: unknown paths fall back to overview */}
               <Route path="*"          element={<Overview />}   />
             </Route>

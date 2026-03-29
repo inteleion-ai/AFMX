@@ -220,3 +220,82 @@ export interface AdminStatsResponse {
   adapters:             string[]
   handlers:             number
 }
+
+// ─── v1.2: Cognitive Execution Matrix (open column axis) ─────────────────────
+
+/**
+ * The ROW axis — fixed universal sequence, never changes.
+ * Valid for every industry and domain.
+ */
+export type CognitiveLayer =
+  | 'PERCEIVE' | 'RETRIEVE' | 'REASON'
+  | 'PLAN'     | 'ACT'      | 'EVALUATE' | 'REPORT'
+
+/**
+ * The COLUMN axis — open string, domain-specific.
+ *
+ * v1.2 change: agent roles are now plain strings, not a fixed union.
+ * Any value from any domain pack is valid:
+ *   Tech:          'OPS' | 'CODER' | 'ANALYST' | ...
+ *   Finance:       'QUANT' | 'TRADER' | 'RISK_MANAGER' | ...
+ *   Healthcare:    'CLINICIAN' | 'PHARMACIST' | 'NURSE' | ...
+ *   Legal:         'PARALEGAL' | 'PARTNER' | 'ASSOCIATE' | ...
+ *   Manufacturing: 'ENGINEER' | 'QUALITY_INSPECTOR' | ...
+ *   Custom:        any UPPER_SNAKE_CASE string
+ */
+export type AgentRole = string
+
+export interface MatrixCell {
+  node_id:     string
+  node_name:   string
+  status:      NodeStatus | null
+  duration_ms: number | null
+  model_tier:  'cheap' | 'premium' | null
+  model:       string | null
+  error:       string | null
+  attempt:     number
+}
+
+export interface MatrixViewSummary {
+  total_possible: number
+  active_cells:   number
+  success_cells:  number
+  failed_cells:   number
+  coverage_pct:   number
+  success_rate:   number
+}
+
+/** Metadata for a role string, sourced from a registered domain pack. */
+export interface RoleMeta {
+  description: string | null   // human-readable description from domain pack
+  domain:      string | null   // domain pack name, e.g. 'finance', 'healthcare'
+}
+
+export interface MatrixViewResponse {
+  execution_id: string
+  matrix_name:  string
+  status:       ExecutionStatus
+  /** ROW headers — always the 7 fixed CognitiveLayer values */
+  layers:       CognitiveLayer[]
+  /** COLUMN headers — dynamically discovered from this execution's node results */
+  roles:        AgentRole[]
+  /** Domain pack metadata per role string (may be empty if role not in any pack) */
+  role_meta:    Record<string, RoleMeta>
+  /** Keyed as "LAYER:ROLE", e.g. "REASON:QUANT" or "ACT:CLINICIAN" */
+  cells:        Record<string, MatrixCell>
+  summary:      MatrixViewSummary
+}
+
+// Domain pack types (from GET /afmx/domains)
+export interface DomainPack {
+  name:        string
+  description: string
+  roles:       Record<string, string>   // role_name → description
+  tags:        string[]
+  role_count:  number
+}
+
+export interface DomainListResponse {
+  count:   number
+  domains: DomainPack[]
+}

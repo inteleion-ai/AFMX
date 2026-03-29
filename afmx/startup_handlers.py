@@ -190,6 +190,128 @@ async def slow_handler(node_input: dict, context, node) -> dict:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# v1.1: COGNITIVE-AWARE LAYER HANDLERS
+# The CognitiveModelRouter injects into metadata before these run:
+#   __model_hint__      — model string (e.g. "claude-haiku-4-5-20251001")
+#   __model_tier__      — "cheap" | "premium"
+#   __cognitive_layer__ — e.g. "REASON"
+#   __agent_role__      — e.g. "COMPLIANCE"
+#
+# These handlers read those keys to include routing telemetry in output,
+# which the Matrix View dashboard displays per cell.
+# ─────────────────────────────────────────────────────────────────────────────
+
+async def perceive_handler(node_input: dict, context, node) -> dict:
+    """PERCEIVE layer — signal/alert ingestion. Cheap model tier."""
+    await asyncio.sleep(0.02)
+    meta = node_input.get("metadata", {})
+    return {
+        "signals_detected": 3,
+        "raw_input":        node_input.get("input", {}),
+        "cognitive_layer":  meta.get("__cognitive_layer__", "PERCEIVE"),
+        "agent_role":       meta.get("__agent_role__"),
+        "model_used":       meta.get("__model_hint__", "unknown"),
+        "model_tier":       meta.get("__model_tier__", "cheap"),
+    }
+
+
+async def retrieve_handler(node_input: dict, context, node) -> dict:
+    """RETRIEVE layer — knowledge/log fetch. Cheap model tier."""
+    await asyncio.sleep(0.03)
+    meta         = node_input.get("metadata", {})
+    node_outputs = node_input.get("node_outputs", {})
+    upstream     = next(iter(node_outputs.values()), {}) if node_outputs else {}
+    return {
+        "retrieved_docs":   5,
+        "signals_upstream": upstream.get("signals_detected", 0),
+        "cognitive_layer":  meta.get("__cognitive_layer__", "RETRIEVE"),
+        "agent_role":       meta.get("__agent_role__"),
+        "model_used":       meta.get("__model_hint__", "unknown"),
+        "model_tier":       meta.get("__model_tier__", "cheap"),
+    }
+
+
+async def reason_handler(node_input: dict, context, node) -> dict:
+    """REASON layer — deep analysis. Premium model tier."""
+    await asyncio.sleep(0.05)
+    meta = node_input.get("metadata", {})
+    return {
+        "root_cause":      "High memory usage in pod afmx-worker-3",
+        "confidence":      0.91,
+        "supporting_docs": 3,
+        "cognitive_layer": meta.get("__cognitive_layer__", "REASON"),
+        "agent_role":      meta.get("__agent_role__"),
+        "model_used":      meta.get("__model_hint__", "unknown"),
+        "model_tier":      meta.get("__model_tier__", "premium"),
+    }
+
+
+async def plan_handler(node_input: dict, context, node) -> dict:
+    """PLAN layer — runbook/strategy generation. Premium model tier."""
+    await asyncio.sleep(0.05)
+    meta         = node_input.get("metadata", {})
+    node_outputs = node_input.get("node_outputs", {})
+    analysis     = next(iter(node_outputs.values()), {}) if node_outputs else {}
+    return {
+        "runbook_steps":   ["Drain pod", "Scale deployment", "Verify health"],
+        "root_cause":      analysis.get("root_cause", "Unknown"),
+        "estimated_ttm_s": 120,
+        "cognitive_layer": meta.get("__cognitive_layer__", "PLAN"),
+        "agent_role":      meta.get("__agent_role__"),
+        "model_used":      meta.get("__model_hint__", "unknown"),
+        "model_tier":      meta.get("__model_tier__", "premium"),
+    }
+
+
+async def act_handler(node_input: dict, context, node) -> dict:
+    """ACT layer — remediation execution. Cheap model tier (pure tool call)."""
+    await asyncio.sleep(0.02)
+    meta = node_input.get("metadata", {})
+    return {
+        "action_taken":    "kubectl rollout restart deployment/afmx-worker",
+        "success":         True,
+        "cognitive_layer": meta.get("__cognitive_layer__", "ACT"),
+        "agent_role":      meta.get("__agent_role__"),
+        "model_used":      meta.get("__model_hint__", "unknown"),
+        "model_tier":      meta.get("__model_tier__", "cheap"),
+    }
+
+
+async def evaluate_handler(node_input: dict, context, node) -> dict:
+    """EVALUATE layer — post-action verification. Premium model tier."""
+    await asyncio.sleep(0.04)
+    meta         = node_input.get("metadata", {})
+    node_outputs = node_input.get("node_outputs", {})
+    act_result   = next(iter(node_outputs.values()), {}) if node_outputs else {}
+    passed       = act_result.get("success", False)
+    return {
+        "evaluation_passed": passed,
+        "checks_run":        5,
+        "checks_passed":     5 if passed else 3,
+        "sla_met":           passed,
+        "cognitive_layer":   meta.get("__cognitive_layer__", "EVALUATE"),
+        "agent_role":        meta.get("__agent_role__"),
+        "model_used":        meta.get("__model_hint__", "unknown"),
+        "model_tier":        meta.get("__model_tier__", "premium"),
+    }
+
+
+async def report_handler(node_input: dict, context, node) -> dict:
+    """REPORT layer — incident summary. Cheap model tier."""
+    await asyncio.sleep(0.02)
+    meta = node_input.get("metadata", {})
+    return {
+        "summary":         "Incident resolved. Pod restarted. SLA met. P1 closed.",
+        "severity":        "P1",
+        "resolution_time": "4 minutes",
+        "cognitive_layer": meta.get("__cognitive_layer__", "REPORT"),
+        "agent_role":      meta.get("__agent_role__"),
+        "model_used":      meta.get("__model_hint__", "unknown"),
+        "model_tier":      meta.get("__model_tier__", "cheap"),
+    }
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 # REGISTRATION
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -213,6 +335,14 @@ _HANDLERS = [
     ("always_fail",       always_fail_handler,      "tool",     "Always raises. Tests fallback paths.",                ["test", "fault"]),
     ("fallback_recovery", fallback_recovery_handler,"tool",     "Graceful fallback recovery handler.",                 ["test", "fallback"]),
     ("slow",              slow_handler,             "tool",     "Sleeps params.sleep_seconds. Tests timeouts.",        ["test", "timeout"]),
+    # v1.1: Cognitive-aware layer handlers
+    ("perceive",          perceive_handler,         "tool",     "PERCEIVE layer — cheap model tier.",                  ["cognitive", "perceive"]),
+    ("retrieve",          retrieve_handler,         "tool",     "RETRIEVE layer — cheap model tier.",                  ["cognitive", "retrieve"]),
+    ("reason",            reason_handler,           "agent",    "REASON layer — premium model tier.",                  ["cognitive", "reason"]),
+    ("plan",              plan_handler,             "agent",    "PLAN layer — premium model tier.",                    ["cognitive", "plan"]),
+    ("act",               act_handler,              "tool",     "ACT layer — cheap model tier.",                       ["cognitive", "act"]),
+    ("evaluate",          evaluate_handler,         "agent",    "EVALUATE layer — premium model tier.",                ["cognitive", "evaluate"]),
+    ("report",            report_handler,           "tool",     "REPORT layer — cheap model tier.",                    ["cognitive", "report"]),
 ]
 
 

@@ -23,6 +23,13 @@ const NAV_GROUPS = [
     ],
   },
   {
+    label: 'Intelligence',
+    items: [
+      { to: '/matrix',  label: 'Cognitive Matrix', Icon: IconMatrix  },
+      { to: '/domains', label: 'Domain Packs',     Icon: IconDomains },
+    ],
+  },
+  {
     label: 'Governance',
     items: [
       { to: '/audit', label: 'Audit Log', Icon: IconAudit },
@@ -314,6 +321,28 @@ function IconKey({ active }: { active: boolean }) {
     <svg width="15" height="15" viewBox="0 0 15 15" fill="none" style={{ opacity: active ? 1 : 0.65, color: active ? 'var(--brand)' : 'currentColor', flexShrink: 0 }}>
       <circle cx="5" cy="9" r="3" stroke="currentColor" strokeWidth="1.4"/>
       <path d="M7.5 7L13 1.5M11 3.5l1.5 1.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+    </svg>
+  )
+}
+function IconDomains({ active }: { active: boolean }) {
+  return (
+    <svg width="15" height="15" viewBox="0 0 15 15" fill="none" style={{ opacity: active ? 1 : 0.65, color: active ? 'var(--brand)' : 'currentColor', flexShrink: 0 }}>
+      <circle cx="7.5" cy="7.5" r="5.5" stroke="currentColor" strokeWidth="1.3"/>
+      <path d="M2.5 7.5h10M7.5 2.5C6 4 5 5.7 5 7.5s1 3.5 2.5 5M7.5 2.5C9 4 10 5.7 10 7.5s-1 3.5-2.5 5" stroke="currentColor" strokeWidth="1.1" fill="none"/>
+    </svg>
+  )
+}
+function IconMatrix({ active }: { active: boolean }) {
+  return (
+    <svg width="15" height="15" viewBox="0 0 15 15" fill="none" style={{ opacity: active ? 1 : 0.65, color: active ? 'var(--brand)' : 'currentColor', flexShrink: 0 }}>
+      <rect x="1"   y="1"   width="5" height="5" rx="1.2" stroke="currentColor" strokeWidth="1.3"/>
+      <rect x="9"   y="1"   width="5" height="5" rx="1.2" stroke="currentColor" strokeWidth="1.3"/>
+      <rect x="1"   y="9"   width="5" height="5" rx="1.2" stroke="currentColor" strokeWidth="1.3"/>
+      <rect x="9"   y="9"   width="5" height="5" rx="1.2" stroke="currentColor" strokeWidth="1.3"/>
+      <line x1="7.5" y1="3.5" x2="9" y2="3.5" stroke="currentColor" strokeWidth="1.1" strokeDasharray="1.2 1.2"/>
+      <line x1="7.5" y1="11.5" x2="9" y2="11.5" stroke="currentColor" strokeWidth="1.1" strokeDasharray="1.2 1.2"/>
+      <line x1="3.5" y1="7.5" x2="3.5" y2="9" stroke="currentColor" strokeWidth="1.1" strokeDasharray="1.2 1.2"/>
+      <line x1="11.5" y1="7.5" x2="11.5" y2="9" stroke="currentColor" strokeWidth="1.1" strokeDasharray="1.2 1.2"/>
     </svg>
   )
 }

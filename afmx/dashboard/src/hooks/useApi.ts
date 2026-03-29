@@ -90,6 +90,29 @@ export const useAdminStats = () => {
   return q(['adminStats'], () => api.adminStats(k))
 }
 
+/* ── v1.2: Domain packs ── */
+export const useDomains = () => {
+  const k = useKey()
+  return q(['domains'], () => api.domains(k), { staleTime: 300_000 })
+}
+
+export const useDomain = (name: string) => {
+  const k = useKey()
+  return q(['domain', name], () => api.domain(name, k), {
+    enabled:   !!name,
+    staleTime: 300_000,
+  })
+}
+
+/* ── v1.2: Matrix View ── */
+export const useMatrixView = (executionId: string) => {
+  const k = useKey()
+  return q(['matrixView', executionId], () => api.matrixView(executionId, k), {
+    enabled:   !!executionId,
+    staleTime: 10_000,
+  })
+}
+
 /* ── Hooks ── */
 export const useHooks = () => {
   const k = useKey()

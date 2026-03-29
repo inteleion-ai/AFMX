@@ -1,6 +1,7 @@
 """
 AFMX core package
 """
+from afmx.core.cognitive_router import CognitiveModelRouter
 from afmx.core.concurrency import ConcurrencyManager
 from afmx.core.dispatcher import AgentDispatcher, AgentTier, DispatchPolicy, DispatchRequest
 from afmx.core.engine import AFMXEngine
@@ -20,4 +21,6 @@ __all__ = [
     "HookRegistry", "HookPayload", "HookType", "default_hooks",
     "ConcurrencyManager",
     "VariableResolver", "default_resolver",
+    # v1.1
+    "CognitiveModelRouter",
 ]

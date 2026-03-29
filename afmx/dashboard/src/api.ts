@@ -3,6 +3,7 @@ import type {
   PluginListResponse, MatrixListResponse, AuditListResponse,
   ApiKeyListResponse, ValidateResponse, ExecuteRequest, HookEntry,
   ExecStats, ApiKey, AdminStatsResponse, ConcurrencyStats,
+  MatrixViewResponse, DomainPack, DomainListResponse,
 } from './types'
 
 const BASE = ''  // same-origin; Vite dev proxy handles /afmx in dev
@@ -103,6 +104,14 @@ export const api = {
   deleteKey: (id: string, key?: string) =>
     del<{ message: string }>(`/afmx/admin/keys/${id}`, key),
   adminStats: (key?: string) => get<AdminStatsResponse>('/afmx/admin/stats', key),
+
+  /* ── v1.2: Cognitive Matrix View ── */
+  matrixView: (executionId: string, key?: string) =>
+    get<MatrixViewResponse>(`/afmx/matrix-view/${executionId}`, key),
+
+  /* ── v1.2: Domain Packs ── */
+  domains:    (key?: string) => get<DomainListResponse>('/afmx/domains', key),
+  domain:     (name: string, key?: string) => get<DomainPack>(`/afmx/domains/${name}`, key),
 
   /* ── Stats — computed client-side from /executions ── */
   execStats: async (key?: string): Promise<ExecStats> => {

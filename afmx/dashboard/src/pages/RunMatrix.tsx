@@ -44,6 +44,100 @@ const TEMPLATES: Record<string, Record<string, unknown>> = {
     ],
     edges: [{ from: 'n1', to: 'n2' }],
   },
+  // v1.2: Cross-domain templates — each uses a different industry vocabulary
+
+  // Tech / SRE  (default domain)
+  cognitive: {
+    name: 'cognitive-sre-matrix',
+    mode: 'DIAGONAL',
+    nodes: [
+      { id: 'p1', name: 'alert-ingestor',  type: 'TOOL',  handler: 'echo',           cognitive_layer: 'PERCEIVE',  agent_role: 'OPS' },
+      { id: 'p2', name: 'log-ingestor',    type: 'TOOL',  handler: 'echo',           cognitive_layer: 'PERCEIVE',  agent_role: 'ANALYST' },
+      { id: 'r1', name: 'log-retriever',   type: 'TOOL',  handler: 'enrich',         cognitive_layer: 'RETRIEVE',  agent_role: 'OPS' },
+      { id: 'r2', name: 'knowledge-fetch', type: 'TOOL',  handler: 'enrich',         cognitive_layer: 'RETRIEVE',  agent_role: 'RESEARCHER' },
+      { id: 'a1', name: 'root-cause',      type: 'AGENT', handler: 'analyst_agent',  cognitive_layer: 'REASON',    agent_role: 'ANALYST' },
+      { id: 'a2', name: 'risk-score',      type: 'AGENT', handler: 'analyst_agent',  cognitive_layer: 'REASON',    agent_role: 'COMPLIANCE' },
+      { id: 'pl', name: 'runbook-gen',     type: 'AGENT', handler: 'writer_agent',   cognitive_layer: 'PLAN',      agent_role: 'OPS' },
+      { id: 'ac', name: 'remediate',       type: 'AGENT', handler: 'analyst_agent',  cognitive_layer: 'ACT',       agent_role: 'OPS' },
+      { id: 'ev', name: 'verify-fix',      type: 'AGENT', handler: 'reviewer_agent', cognitive_layer: 'EVALUATE',  agent_role: 'VERIFIER' },
+      { id: 'rp', name: 'incident-report', type: 'TOOL',  handler: 'summarize',      cognitive_layer: 'REPORT',    agent_role: 'OPS' },
+    ],
+    edges: [
+      { from: 'p1', to: 'r1' }, { from: 'p2', to: 'r2' },
+      { from: 'r1', to: 'a1' }, { from: 'r2', to: 'a2' },
+      { from: 'a1', to: 'pl' }, { from: 'a2', to: 'pl' },
+      { from: 'pl', to: 'ac' },
+      { from: 'ac', to: 'ev' },
+      { from: 'ev', to: 'rp' },
+    ],
+  },
+
+  // Finance / Capital Markets domain (FinanceRole vocabulary)
+  finance: {
+    name: 'cognitive-risk-matrix',
+    mode: 'DIAGONAL',
+    nodes: [
+      { id: 'p1', name: 'market-signals',   type: 'TOOL',  handler: 'echo',           cognitive_layer: 'PERCEIVE',  agent_role: 'ANALYST' },
+      { id: 'r1', name: 'price-retrieval',  type: 'TOOL',  handler: 'enrich',         cognitive_layer: 'RETRIEVE',  agent_role: 'QUANT' },
+      { id: 'r2', name: 'model-lookup',     type: 'TOOL',  handler: 'enrich',         cognitive_layer: 'RETRIEVE',  agent_role: 'ANALYST' },
+      { id: 'a1', name: 'quant-analysis',   type: 'AGENT', handler: 'analyst_agent',  cognitive_layer: 'REASON',    agent_role: 'QUANT' },
+      { id: 'a2', name: 'risk-scoring',     type: 'AGENT', handler: 'analyst_agent',  cognitive_layer: 'REASON',    agent_role: 'RISK_MANAGER' },
+      { id: 'pl', name: 'portfolio-plan',   type: 'AGENT', handler: 'writer_agent',   cognitive_layer: 'PLAN',      agent_role: 'PORTFOLIO_MANAGER' },
+      { id: 'ac', name: 'execute-trade',    type: 'AGENT', handler: 'analyst_agent',  cognitive_layer: 'ACT',       agent_role: 'TRADER' },
+      { id: 'ev', name: 'compliance-check', type: 'AGENT', handler: 'reviewer_agent', cognitive_layer: 'EVALUATE',  agent_role: 'COMPLIANCE_OFFICER' },
+      { id: 'rp', name: 'risk-report',      type: 'TOOL',  handler: 'summarize',      cognitive_layer: 'REPORT',    agent_role: 'AUDITOR' },
+    ],
+    edges: [
+      { from: 'p1', to: 'r1' }, { from: 'p1', to: 'r2' },
+      { from: 'r1', to: 'a1' }, { from: 'r2', to: 'a2' },
+      { from: 'a1', to: 'pl' }, { from: 'a2', to: 'pl' },
+      { from: 'pl', to: 'ac' }, { from: 'ac', to: 'ev' }, { from: 'ev', to: 'rp' },
+    ],
+  },
+
+  // Healthcare / Clinical domain (HealthcareRole vocabulary)
+  healthcare: {
+    name: 'cognitive-clinical-matrix',
+    mode: 'DIAGONAL',
+    nodes: [
+      { id: 'p1', name: 'symptom-intake',    type: 'TOOL',  handler: 'echo',           cognitive_layer: 'PERCEIVE',  agent_role: 'NURSE' },
+      { id: 'r1', name: 'record-retrieval',  type: 'TOOL',  handler: 'enrich',         cognitive_layer: 'RETRIEVE',  agent_role: 'NURSE' },
+      { id: 'r2', name: 'guideline-lookup',  type: 'TOOL',  handler: 'enrich',         cognitive_layer: 'RETRIEVE',  agent_role: 'RESEARCHER' },
+      { id: 'a1', name: 'diagnosis',         type: 'AGENT', handler: 'analyst_agent',  cognitive_layer: 'REASON',    agent_role: 'CLINICIAN' },
+      { id: 'pl', name: 'treatment-plan',    type: 'AGENT', handler: 'writer_agent',   cognitive_layer: 'PLAN',      agent_role: 'CLINICIAN' },
+      { id: 'a2', name: 'medication-check',  type: 'AGENT', handler: 'analyst_agent',  cognitive_layer: 'PLAN',      agent_role: 'PHARMACIST' },
+      { id: 'ac', name: 'administer',        type: 'AGENT', handler: 'analyst_agent',  cognitive_layer: 'ACT',       agent_role: 'NURSE' },
+      { id: 'ev', name: 'outcome-assess',    type: 'AGENT', handler: 'reviewer_agent', cognitive_layer: 'EVALUATE',  agent_role: 'ASSESSOR' },
+      { id: 'rp', name: 'clinical-notes',    type: 'TOOL',  handler: 'summarize',      cognitive_layer: 'REPORT',    agent_role: 'CLINICIAN' },
+    ],
+    edges: [
+      { from: 'p1', to: 'r1' }, { from: 'p1', to: 'r2' },
+      { from: 'r1', to: 'a1' }, { from: 'r2', to: 'a1' },
+      { from: 'a1', to: 'pl' }, { from: 'a1', to: 'a2' },
+      { from: 'pl', to: 'ac' }, { from: 'a2', to: 'ac' },
+      { from: 'ac', to: 'ev' }, { from: 'ev', to: 'rp' },
+    ],
+  },
+
+  // Legal domain (LegalRole vocabulary)
+  legal: {
+    name: 'cognitive-legal-matrix',
+    mode: 'DIAGONAL',
+    nodes: [
+      { id: 'p1', name: 'fact-gather',       type: 'TOOL',  handler: 'echo',           cognitive_layer: 'PERCEIVE',  agent_role: 'PARALEGAL' },
+      { id: 'r1', name: 'precedent-search',  type: 'TOOL',  handler: 'enrich',         cognitive_layer: 'RETRIEVE',  agent_role: 'PARALEGAL' },
+      { id: 'a1', name: 'legal-analysis',    type: 'AGENT', handler: 'analyst_agent',  cognitive_layer: 'REASON',    agent_role: 'ASSOCIATE' },
+      { id: 'pl', name: 'strategy',          type: 'AGENT', handler: 'writer_agent',   cognitive_layer: 'PLAN',      agent_role: 'PARTNER' },
+      { id: 'ac', name: 'file-brief',        type: 'AGENT', handler: 'analyst_agent',  cognitive_layer: 'ACT',       agent_role: 'CLERK' },
+      { id: 'ev', name: 'outcome-assess',    type: 'AGENT', handler: 'reviewer_agent', cognitive_layer: 'EVALUATE',  agent_role: 'PARTNER' },
+      { id: 'rp', name: 'client-memo',       type: 'TOOL',  handler: 'summarize',      cognitive_layer: 'REPORT',    agent_role: 'ASSOCIATE' },
+    ],
+    edges: [
+      { from: 'p1', to: 'r1' }, { from: 'r1', to: 'a1' },
+      { from: 'a1', to: 'pl' }, { from: 'pl', to: 'ac' },
+      { from: 'ac', to: 'ev' }, { from: 'ev', to: 'rp' },
+    ],
+  },
 }
 
 /* ── Helpers ── */

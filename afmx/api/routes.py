@@ -100,6 +100,9 @@ async def execute(
         context=context,
         triggered_by=body.triggered_by,
         tags=body.tags or [],
+        # v1.2.1: snapshot the matrix definition so POST /resume/{id} works
+        # even when this matrix was never saved to MatrixStore.
+        matrix_snapshot=matrix.model_dump(),
     )
     await state_store.save(record)
 
@@ -154,6 +157,9 @@ async def execute_async(
         context=context,
         triggered_by=body.triggered_by,
         tags=body.tags or [],
+        # v1.2.1: snapshot the matrix definition so POST /resume/{id} works
+        # even when this matrix was never saved to MatrixStore.
+        matrix_snapshot=matrix.model_dump(),
     )
     await state_store.save(record)
 
@@ -306,6 +312,45 @@ async def list_plugins(plugin_registry=Depends(get_plugin_registry)):
     )
 
 
+# ─── Domain Packs (v1.2) ────────────────────────────────────────────────────────
+
+@router.get(
+    "/domains",
+    summary="v1.2: List all registered domain packs (agent role vocabularies)",
+    description=(
+        "Returns all built-in and custom domain packs. Each pack defines "
+        "the agent role strings (column axis) for a specific industry. "
+        "Built-in packs: tech, finance, healthcare, legal, manufacturing."
+    ),
+)
+async def list_domains():
+    """List all registered domain packs with their role definitions."""
+    from afmx.domains import domain_registry
+    return {
+        "count":   len(domain_registry),
+        "domains": domain_registry.list_all(),
+    }
+
+
+@router.get(
+    "/domains/{name}",
+    summary="v1.2: Get a specific domain pack by name",
+)
+async def get_domain(name: str):
+    """Return a single domain pack by name, or 404."""
+    from afmx.domains import domain_registry
+    pack = domain_registry.get(name)
+    if not pack:
+        raise HTTPException(
+            status_code=404,
+            detail=(
+                f"Domain pack '{name}' not found. "
+                f"Available: {[p['name'] for p in domain_registry.list_all()]}"
+            ),
+        )
+    return pack.to_dict()
+
+
 # ─── Cancel ───────────────────────────────────────────────────────────────────
 
 @router.post("/cancel/{execution_id}", summary="Cancel a running execution (best-effort)")
@@ -392,6 +437,89 @@ async def retry_execution(
 
 # ─── Resume ───────────────────────────────────────────────────────────────────
 
+@router.get(
+    "/matrix-view/{execution_id}",
+    summary="v1.1: Cognitive Execution Matrix view for an execution",
+)
+async def matrix_view(execution_id: str, state_store=Depends(get_state_store)):
+    """
+    Returns a 2D matrix view: CognitiveLayer (rows) x AgentRole (columns).
+    Each cell shows the node that ran there, its status, duration, and model tier.
+    Cells without a node are omitted from the 'cells' dict.
+    Used by the Matrix View dashboard page.
+    """
+    record = await state_store.get(execution_id)
+    if not record:
+        raise HTTPException(status_code=404, detail=f"Execution '{execution_id}' not found")
+
+    from afmx.models.node import CognitiveLayer
+
+    # ROW axis — always the fixed CognitiveLayer sequence (universal, never changes)
+    layers = [layer.value for layer in CognitiveLayer]
+
+    # COLUMN axis — dynamically discovered from the execution's node results.
+    # This supports any domain vocabulary: tech, finance, healthcare, legal, etc.
+    cells:       Dict[str, Any] = {}
+    active       = 0
+    success      = 0
+    roles_seen:  set = set()
+
+    for node_id, result_data in record.node_results.items():
+        if not isinstance(result_data, dict):
+            continue
+        cl = result_data.get("cognitive_layer")
+        ar = result_data.get("agent_role")
+        if cl and ar:
+            roles_seen.add(ar)
+            key = f"{cl}:{ar}"
+            active += 1
+            if result_data.get("status") == "SUCCESS":
+                success += 1
+            meta = result_data.get("metadata") or {}
+            cells[key] = {
+                "node_id":    node_id,
+                "node_name":  result_data.get("node_name", node_id),
+                "status":     result_data.get("status"),
+                "duration_ms":result_data.get("duration_ms"),
+                "model_tier": meta.get("__model_tier__"),
+                "model":      meta.get("__model_hint__"),
+                "error":      result_data.get("error"),
+                "attempt":    result_data.get("attempt", 1),
+            }
+
+    # Sorted roles list — the column headers for the dashboard matrix grid
+    roles          = sorted(roles_seen)
+    total_possible = len(layers) * len(roles) if roles else 0
+
+    # Enrich roles with domain pack descriptions where available
+    from afmx.domains import domain_registry as _dr
+    role_meta = {
+        r: {
+            "description": _dr.resolve_role(r),
+            "domain":      _dr.find_domain_for_role(r),
+        }
+        for r in roles
+    }
+
+    return {
+        "execution_id": execution_id,
+        "matrix_name":  record.matrix_name,
+        "status":       record.status,
+        "layers":       layers,
+        "roles":        roles,      # dynamic — whatever domain this execution used
+        "role_meta":    role_meta,  # descriptions from registered domain packs
+        "cells":        cells,
+        "summary": {
+            "total_possible": total_possible,
+            "active_cells":   active,
+            "success_cells":  success,
+            "failed_cells":   active - success,
+            "coverage_pct":   round(active / total_possible * 100, 1) if total_possible else 0.0,
+            "success_rate":   round(success / active * 100, 1) if active else 0.0,
+        },
+    }
+
+
 @router.post(
     "/resume/{execution_id}",
     summary="Resume a failed/partial execution from its last checkpoint",
@@ -431,16 +559,29 @@ async def resume_execution(
             ),
         )
 
-    # Reconstruct matrix
+    # Reconstruct matrix — try MatrixStore first, then fall back to the snapshot
+    # embedded in the ExecutionRecord (populated since v1.2.1 for ad-hoc executions).
     try:
         from afmx.main import afmx_app
         stored = await afmx_app.matrix_store.get(original.matrix_name)
-        if not stored:
+        if stored:
+            matrix = ExecutionMatrix.model_validate(stored.definition)
+        elif original.matrix_snapshot:
+            logger.info(
+                "[resume] Matrix '%s' not in store — restoring from execution snapshot",
+                original.matrix_name,
+            )
+            matrix = ExecutionMatrix.model_validate(original.matrix_snapshot)
+        else:
             raise HTTPException(
                 status_code=404,
-                detail=f"Matrix '{original.matrix_name}' not in store.",
+                detail=(
+                    f"Matrix '{original.matrix_name}' not found in MatrixStore and no "
+                    "snapshot was captured at execution time.  Save the matrix via "
+                    "POST /afmx/matrices before running, or upgrade to v1.2.1 which "
+                    "automatically snapshots ad-hoc matrices."
+                ),
             )
-        matrix = ExecutionMatrix.model_validate(stored.definition)
     except HTTPException:
         raise
     except Exception as exc:

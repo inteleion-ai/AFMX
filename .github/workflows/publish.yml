@@ -9,26 +9,50 @@ permissions:
 
 jobs:
   build:
+    name: Build distribution
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - run: pip install build twine
-      - run: python -m build
-      - run: twine check dist/*
-      - uses: actions/upload-artifact@v4
+          cache: pip
+
+      - name: Install build tools
+        run: pip install build twine
+
+      - name: Build sdist + wheel
+        run: python -m build
+
+      - name: Verify distribution metadata
+        run: twine check dist/*
+
+      - name: Smoke-test wheel install
+        run: |
+          pip install dist/*.whl
+          python -c "import afmx; print('Version:', afmx.__version__)"
+          python -c "from afmx.adapters.mcp import MCPAdapter; print('MCPAdapter OK')"
+          python -c "from afmx.models.execution import ExecutionRecord; print('ExecutionRecord OK')"
+          python -c "from afmx.observability.events import EventType; assert hasattr(EventType, 'LAYER_STARTED'); print('LAYER_STARTED OK')"
+
+      - name: Upload dist artifacts
+        uses: actions/upload-artifact@v4
         with:
           name: dist
           path: dist/
+
   publish:
+    name: Publish to PyPI
     needs: build
     runs-on: ubuntu-latest
     environment: pypi
     steps:
-      - uses: actions/download-artifact@v4
+      - name: Download dist artifacts
+        uses: actions/download-artifact@v4
         with:
           name: dist
           path: dist/
-      - uses: pypa/gh-action-pypi-publish@release/v1
+
+      - name: Publish to PyPI (OIDC trusted publishing)
+        uses: pypa/gh-action-pypi-publish@release/v1
