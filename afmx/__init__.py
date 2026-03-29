@@ -22,12 +22,6 @@ from afmx.adapters.registry import AdapterRegistry, adapter_registry
 from afmx.adapters.semantic_kernel import SemanticKernelAdapter
 from afmx.core.cognitive_router import CognitiveModelRouter
 from afmx.core.concurrency import ConcurrencyManager
-from afmx.domains import DomainPack, DomainRegistry, domain_registry
-from afmx.domains.finance import FinanceDomain, FinanceRole
-from afmx.domains.healthcare import HealthcareDomain, HealthcareRole
-from afmx.domains.legal import LegalDomain, LegalRole
-from afmx.domains.manufacturing import ManufacturingDomain, ManufacturingRole
-from afmx.domains.tech import AgentRole, TechDomain
 from afmx.core.dispatcher import AgentDispatcher, AgentTier, DispatchPolicy, DispatchRequest
 from afmx.core.engine import AFMXEngine
 from afmx.core.executor import HandlerRegistry
@@ -35,6 +29,12 @@ from afmx.core.hooks import HookPayload, HookRegistry, HookType, default_hooks
 from afmx.core.retry import RetryManager
 from afmx.core.router import RoutingRule, RoutingStrategy, ToolRouter
 from afmx.core.variable_resolver import VariableResolver
+from afmx.domains import DomainPack, DomainRegistry, domain_registry
+from afmx.domains.finance import FinanceDomain, FinanceRole
+from afmx.domains.healthcare import HealthcareDomain, HealthcareRole
+from afmx.domains.legal import LegalDomain, LegalRole
+from afmx.domains.manufacturing import ManufacturingDomain, ManufacturingRole
+from afmx.domains.tech import AgentRole, TechDomain
 from afmx.models.edge import Edge, EdgeCondition, EdgeConditionType
 from afmx.models.execution import ExecutionContext, ExecutionRecord, ExecutionStatus
 from afmx.models.matrix import AbortPolicy, ExecutionMatrix, ExecutionMode, MatrixAddress

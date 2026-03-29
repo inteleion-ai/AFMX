@@ -5,7 +5,7 @@ from afmx.models.edge import Edge, EdgeCondition, EdgeConditionType
 from afmx.models.execution import ExecutionContext, ExecutionRecord, ExecutionStatus
 from afmx.models.matrix import AbortPolicy, ExecutionMatrix, ExecutionMode, MatrixAddress
 from afmx.models.node import (
-    AgentRole,          # backward-compat re-export from afmx.domains.tech
+    AgentRole,
     CircuitBreakerPolicy,
     CognitiveLayer,
     Node,

@@ -86,9 +86,9 @@ logger = logging.getLogger(__name__)
 # ── Optional dependency guard ─────────────────────────────────────────────────
 
 try:
+    from map.core.exceptions import ConflictError, MAPError
+    from map.core.models import ConflictStrategy, RetrievalQuery, SourceType
     from map.service import MAPService
-    from map.core.models import RetrievalQuery, SourceType, ConflictStrategy
-    from map.core.exceptions import MAPError, ConflictError
     _MAP_AVAILABLE = True
 except ImportError:
     _MAP_AVAILABLE = False

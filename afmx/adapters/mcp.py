@@ -831,8 +831,8 @@ async def _discover_tools_sse(
     List[Dict[str, Any]]
         Raw tool dicts from ``tools/list``.
     """
-    from mcp.client.sse import sse_client
     from mcp.client.session import ClientSession
+    from mcp.client.sse import sse_client
 
     headers = extra_headers or {}
     try:
@@ -863,8 +863,8 @@ async def _discover_tools_stdio(
     List[Dict[str, Any]]
         Raw tool dicts from ``tools/list``.
     """
-    from mcp.client.stdio import stdio_client, StdioServerParameters
     from mcp.client.session import ClientSession
+    from mcp.client.stdio import StdioServerParameters, stdio_client
 
     params = StdioServerParameters(
         command=cfg.command,
@@ -931,8 +931,8 @@ async def _call_tool_sse(
     tool_name: str,
     arguments: Dict[str, Any],
 ) -> Any:
-    from mcp.client.sse import sse_client
     from mcp.client.session import ClientSession
+    from mcp.client.sse import sse_client
 
     async with sse_client(cfg.server_url) as (read, write):
         async with ClientSession(read, write) as session:
@@ -946,8 +946,8 @@ async def _call_tool_stdio(
     tool_name: str,
     arguments: Dict[str, Any],
 ) -> Any:
-    from mcp.client.stdio import stdio_client, StdioServerParameters
     from mcp.client.session import ClientSession
+    from mcp.client.stdio import StdioServerParameters, stdio_client
 
     params = StdioServerParameters(
         command=cfg.command,

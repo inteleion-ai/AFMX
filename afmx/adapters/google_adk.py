@@ -412,7 +412,7 @@ class GoogleADKAdapter(AFMXAdapter):
 
         try:
             service = self._session_service or InMemorySessionService()
-            session = await service.create_session(
+            await service.create_session(
                 app_name=self._app_name,
                 user_id=self._user_id,
                 session_id=session_id,
