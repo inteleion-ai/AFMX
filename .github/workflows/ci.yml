@@ -63,8 +63,6 @@ jobs:
         run: |
           pytest tests/unit/test_week1_week2_fixes.py \
             -k "MCP or mcp or Mcp" \
-            --cov=afmx/adapters/mcp \
-            --cov-report=xml \
             -v
 
       - name: Run MCP example (smoke test)
