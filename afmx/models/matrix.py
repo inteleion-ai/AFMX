@@ -23,7 +23,6 @@ Apache-2.0 License. See LICENSE for details.
 from __future__ import annotations
 
 import uuid
-
 from enum import Enum
 from typing import Any, Dict, List, Optional, Set
 

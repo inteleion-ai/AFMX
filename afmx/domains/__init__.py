@@ -50,8 +50,6 @@ Usage
 
 Apache-2.0 License. See LICENSE for details.
 """
-from __future__ import annotations
-
 from dataclasses import dataclass, field
 from typing import Dict, FrozenSet, List, Optional
 

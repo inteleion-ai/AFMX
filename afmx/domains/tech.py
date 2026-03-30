@@ -19,8 +19,6 @@ For new code, prefer passing role strings directly:
 
 Apache-2.0 License. See LICENSE for details.
 """
-from __future__ import annotations
-
 from afmx.domains import DomainPack, domain_registry
 
 
