@@ -119,12 +119,18 @@ def _infer_adk_layer(obj: Any) -> CognitiveLayer:
     if "sequential" in obj_type or "parallel" in obj_type:
         return CognitiveLayer.PLAN
 
-    name = getattr(obj, "name", "") or ""
-    desc = (
-        getattr(obj, "description", "")
-        or getattr(obj, "instruction", "")
-        or ""
-    )
+    # Convert to str explicitly — attributes on MagicMock objects are truthy
+    # but not strings; this guards against test mocks and unusual ADK objects.
+    raw_name = getattr(obj, "name", "") or ""
+    name = str(raw_name) if not isinstance(raw_name, str) else raw_name
+
+    raw_desc = getattr(obj, "description", None)
+    if not isinstance(raw_desc, str):
+        raw_desc = getattr(obj, "instruction", None)
+    if not isinstance(raw_desc, str):
+        raw_desc = ""
+    desc: str = raw_desc
+
     return infer_cognitive_layer(name, desc)
 
 

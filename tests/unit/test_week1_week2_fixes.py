@@ -283,9 +283,10 @@ class TestInferCognitiveLayer:
         ("generate_report", "Generate a status report",              CognitiveLayer.REPORT),
         ("export_csv",      "Export data to CSV format",             CognitiveLayer.REPORT),
         ("summarize_logs",  "Summarise recent log entries",          CognitiveLayer.REPORT),
+        # EVALUATE — 'analyse'/'analyze' are in EVALUATE keyword set
+        ("analyse",         "Analyse data patterns",                 CognitiveLayer.EVALUATE),
         # REASON fallback
         ("calculate",       "Perform a complex calculation",         CognitiveLayer.REASON),
-        ("analyse",         "Analyse data patterns",                 CognitiveLayer.REASON),
         ("process",         "Process incoming data",                 CognitiveLayer.REASON),
         # Empty / unknown → REASON
         ("",                "",                                      CognitiveLayer.REASON),
@@ -592,11 +593,12 @@ class TestMCPAdapterIntegration:
             self._make_mock_tool("check_health","check service health"),
         ]
 
-        with patch("afmx.adapters.mcp._discover_tools_sse", new_callable=AsyncMock) as mock_discover:
-            mock_discover.return_value = [_tool_to_dict(t) for t in mock_tools]
+        with patch("afmx.adapters.mcp._require_mcp"):  # mcp optional dep may not be installed
+            with patch("afmx.adapters.mcp._discover_tools_sse", new_callable=AsyncMock) as mock_discover:
+                mock_discover.return_value = [_tool_to_dict(t) for t in mock_tools]
 
-            adapter = MCPAdapter()
-            nodes = await adapter.from_server("http://localhost:3000")
+                adapter = MCPAdapter()
+                nodes = await adapter.from_server("http://localhost:3000")
 
         assert len(nodes) == 3
 
@@ -615,14 +617,15 @@ class TestMCPAdapterIntegration:
         """from_config() creates nodes from a stdio server config."""
         mock_tools = [self._make_mock_tool("read_file", "read a file")]
 
-        with patch("afmx.adapters.mcp._discover_tools_stdio", new_callable=AsyncMock) as mock_disc:
-            mock_disc.return_value = [_tool_to_dict(t) for t in mock_tools]
+        with patch("afmx.adapters.mcp._require_mcp"):
+            with patch("afmx.adapters.mcp._discover_tools_stdio", new_callable=AsyncMock) as mock_disc:
+                mock_disc.return_value = [_tool_to_dict(t) for t in mock_tools]
 
-            adapter = MCPAdapter()
-            nodes = await adapter.from_config({
-                "command": "npx",
-                "args": ["-y", "@anthropic/mcp-server-filesystem"],
-            }, server_name="filesystem")
+                adapter = MCPAdapter()
+                nodes = await adapter.from_config({
+                    "command": "npx",
+                    "args": ["-y", "@anthropic/mcp-server-filesystem"],
+                }, server_name="filesystem")
 
         assert len(nodes) == 1
         assert nodes[0].cognitive_layer == CognitiveLayer.RETRIEVE.value
@@ -642,14 +645,15 @@ class TestMCPAdapterIntegration:
                 return [_tool_to_dict(t) for t in mock_tools_a]
             return [_tool_to_dict(t) for t in mock_tools_b]
 
-        with patch("afmx.adapters.mcp._discover_tools_stdio", side_effect=fake_discover_stdio):
-            adapter = MCPAdapter()
-            nodes = await adapter.from_desktop_config({
-                "mcpServers": {
-                    "search-server": {"command": "npx", "args": ["search-mcp"]},
-                    "github-server": {"command": "npx", "args": ["github-mcp"]},
-                }
-            })
+        with patch("afmx.adapters.mcp._require_mcp"):
+            with patch("afmx.adapters.mcp._discover_tools_stdio", side_effect=fake_discover_stdio):
+                adapter = MCPAdapter()
+                nodes = await adapter.from_desktop_config({
+                    "mcpServers": {
+                        "search-server": {"command": "npx", "args": ["search-mcp"]},
+                        "github-server": {"command": "npx", "args": ["github-mcp"]},
+                    }
+                })
 
         assert len(nodes) == 2
         assert call_count[0] == 2
@@ -664,14 +668,15 @@ class TestMCPAdapterIntegration:
                 raise ConnectionError("server not found")
             return [_tool_to_dict(t) for t in mock_tools]
 
-        with patch("afmx.adapters.mcp._discover_tools_stdio", side_effect=fake_discover_stdio):
-            adapter = MCPAdapter()
-            nodes = await adapter.from_desktop_config({
-                "mcpServers": {
-                    "good-server": {"command": "npx", "args": []},
-                    "bad-server":  {"command": "npx", "args": []},
-                }
-            })
+        with patch("afmx.adapters.mcp._require_mcp"):
+            with patch("afmx.adapters.mcp._discover_tools_stdio", side_effect=fake_discover_stdio):
+                adapter = MCPAdapter()
+                nodes = await adapter.from_desktop_config({
+                    "mcpServers": {
+                        "good-server": {"command": "npx", "args": []},
+                        "bad-server":  {"command": "npx", "args": []},
+                    }
+                })
 
         # Only the good server's tool survives
         assert len(nodes) == 1
@@ -681,14 +686,15 @@ class TestMCPAdapterIntegration:
         """default_role is passed through to all discovered nodes."""
         mock_tools = [self._make_mock_tool("search", "search the web")]
 
-        with patch("afmx.adapters.mcp._discover_tools_sse", new_callable=AsyncMock) as mock_disc:
-            mock_disc.return_value = [_tool_to_dict(t) for t in mock_tools]
+        with patch("afmx.adapters.mcp._require_mcp"):
+            with patch("afmx.adapters.mcp._discover_tools_sse", new_callable=AsyncMock) as mock_disc:
+                mock_disc.return_value = [_tool_to_dict(t) for t in mock_tools]
 
-            adapter = MCPAdapter()
-            nodes = await adapter.from_server(
-                "http://localhost:3000",
-                default_role="OPS",
-            )
+                adapter = MCPAdapter()
+                nodes = await adapter.from_server(
+                    "http://localhost:3000",
+                    default_role="OPS",
+                )
 
         assert nodes[0].agent_role == "OPS"
 
@@ -701,10 +707,11 @@ class TestMCPAdapterIntegration:
             captured_urls.append(url)
             return []
 
-        with patch("afmx.adapters.mcp._discover_tools_sse", side_effect=fake_discover_sse):
-            adapter = MCPAdapter()
-            await adapter.from_server("http://localhost:3000")          # no /sse
-            await adapter.from_server("http://localhost:3000/sse")      # already has /sse
-            await adapter.from_server("http://localhost:3000/sse/")     # trailing slash
+        with patch("afmx.adapters.mcp._require_mcp"):
+            with patch("afmx.adapters.mcp._discover_tools_sse", side_effect=fake_discover_sse):
+                adapter = MCPAdapter()
+                await adapter.from_server("http://localhost:3000")          # no /sse
+                await adapter.from_server("http://localhost:3000/sse")      # already has /sse
+                await adapter.from_server("http://localhost:3000/sse/")     # trailing slash
 
         assert all(u == "http://localhost:3000/sse" for u in captured_urls)

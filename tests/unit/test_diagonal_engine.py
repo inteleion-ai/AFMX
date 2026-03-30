@@ -83,6 +83,8 @@ class TestDiagonalExecution:
 
     def setup_method(self):
         _EXECUTION_ORDER.clear()
+        # Re-register to guard against any test that clears HandlerRegistry
+        HandlerRegistry.register("capture_handler", _capture_handler)
 
     def _run(self, matrix: ExecutionMatrix) -> ExecutionRecord:
         context = ExecutionContext(input={"test": True})
@@ -91,7 +93,7 @@ class TestDiagonalExecution:
             matrix_name=matrix.name,
             context=context,
         )
-        return asyncio.get_event_loop().run_until_complete(
+        return asyncio.run(
             _make_engine().execute(matrix, context, record)
         )
 
@@ -245,7 +247,8 @@ class TestDiagonalExecution:
         assert summary["coordinated_nodes"]   == 2
         assert summary["uncoordinated_nodes"] == 1
         assert summary["cells_populated"]     == 2
-        assert summary["cells_possible"]      == 49  # 7 × 7
+        # cells_possible = 7 layers × N unique roles in THIS matrix (OPS + ANALYST = 2)
+        assert summary["cells_possible"]      == 14  # 7 × 2
 
 
 class TestCognitiveRouterStandalone:

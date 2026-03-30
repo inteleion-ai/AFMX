@@ -204,7 +204,9 @@ class BedrockAdapter(AFMXAdapter):
             AFMX node that invokes the Bedrock Agent via
             ``bedrock-agent-runtime:invoke_agent``.
         """
-        _require_boto3()
+        # _require_boto3() is intentionally NOT called here — it was already
+        # enforced in __init__.  Calling it here would break unit tests that
+        # bypass __init__ via BedrockAdapter.__new__.
         handler_key = f"{_HANDLER_PREFIX}agent.{agent_id}"
         layer       = cognitive_layer or CognitiveLayer.REASON
 
@@ -281,7 +283,7 @@ class BedrockAdapter(AFMXAdapter):
             max_tokens: Max output tokens.
             temperature: Sampling temperature.
         """
-        _require_boto3()
+        # _require_boto3() not called here — enforced in __init__ (see agent_node comment).
         from afmx.adapters.mcp import infer_cognitive_layer
 
         handler_key = f"{_HANDLER_PREFIX}model.{model_id.replace(':', '_').replace('.', '_')}"

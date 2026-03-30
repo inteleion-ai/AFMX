@@ -442,13 +442,14 @@ class TestCognitiveModelRouterOpenRoles:
 class TestBackwardCompatibility:
     def test_v11_matrix_works_unchanged(self):
         """v1.1 matrices with AgentRole.X values still validate and run."""
+        # Explicit IDs so edges can reference them by ID (not name).
         matrix = ExecutionMatrix(
             name="legacy-v11",
             mode=ExecutionMode.SEQUENTIAL,
             nodes=[
-                Node(name="n1", type=NodeType.TOOL,  handler="echo",
+                Node(id="n1", name="n1", type=NodeType.TOOL,  handler="echo",
                      cognitive_layer=CognitiveLayer.PERCEIVE, agent_role=AgentRole.OPS),
-                Node(name="n2", type=NodeType.AGENT, handler="analyst_agent",
+                Node(id="n2", name="n2", type=NodeType.AGENT, handler="analyst_agent",
                      cognitive_layer=CognitiveLayer.REASON,  agent_role=AgentRole.ANALYST),
             ],
             edges=[{"from": "n1", "to": "n2"}],
