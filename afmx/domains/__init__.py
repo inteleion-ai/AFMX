@@ -53,7 +53,6 @@ Apache-2.0 License. See LICENSE for details.
 from dataclasses import dataclass, field
 from typing import Dict, FrozenSet, List, Optional
 
-
 # ─── DomainPack ───────────────────────────────────────────────────────────────
 
 @dataclass(frozen=True)

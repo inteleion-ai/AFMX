@@ -31,7 +31,6 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 from afmx.models.edge import Edge
 from afmx.models.node import CognitiveLayer, Node
 
-
 # ─── Execution mode ───────────────────────────────────────────────────────────
 
 class ExecutionMode(str, Enum):

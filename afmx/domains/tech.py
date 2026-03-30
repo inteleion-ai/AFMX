@@ -21,7 +21,6 @@ Apache-2.0 License. See LICENSE for details.
 """
 from afmx.domains import DomainPack, domain_registry
 
-
 # ─── Role constants (backward-compatible namespace) ───────────────────────────
 
 class AgentRole:
