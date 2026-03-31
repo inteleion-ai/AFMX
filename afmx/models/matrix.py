@@ -31,6 +31,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 from afmx.models.edge import Edge
 from afmx.models.node import CognitiveLayer, Node
 
+
 # ─── Execution mode ───────────────────────────────────────────────────────────
 
 class ExecutionMode(str, Enum):
@@ -90,10 +91,13 @@ class MatrixAddress(BaseModel):
         return v
 
     def __str__(self) -> str:
-        return f"{self.layer}×{self.role}"
+        # Use .value to get "REASON" not "CognitiveLayer.REASON" on Python 3.12+
+        layer_str = self.layer.value if isinstance(self.layer, CognitiveLayer) else str(self.layer)
+        return f"{layer_str}×{self.role}"
 
     def __repr__(self) -> str:
-        return f"MatrixAddress(layer={self.layer!r}, role={self.role!r})"
+        layer_str = self.layer.value if isinstance(self.layer, CognitiveLayer) else str(self.layer)
+        return f"MatrixAddress(layer={layer_str!r}, role={self.role!r})"
 
     def __hash__(self) -> int:
         return hash((self.layer, self.role))

@@ -240,7 +240,11 @@ class GoogleADKAdapter(AFMXAdapter):
             cognitive_layer: Override inferred layer (default: from name/desc).
         """
         _require_adk()
-        tool_name = getattr(tool, "name", None) or type(tool).__name__.lower()
+        # Use isinstance guard: MagicMock.name returns a MagicMock, not None,
+        # so a plain truthiness check would accept it as the name.
+        raw_tool_name = getattr(tool, "name", None)
+        tool_name = raw_tool_name if isinstance(raw_tool_name, str) and raw_tool_name \
+            else type(tool).__name__.lower()
         handler_key = f"{_HANDLER_PREFIX}tool.{tool_name}"
         layer = cognitive_layer or _infer_adk_layer(tool)
 
@@ -303,7 +307,9 @@ class GoogleADKAdapter(AFMXAdapter):
             cognitive_layer: Override inferred layer.
         """
         _require_adk()
-        agent_name  = getattr(agent, "name", None) or type(agent).__name__.lower()
+        raw_agent_name = getattr(agent, "name", None)
+        agent_name = raw_agent_name if isinstance(raw_agent_name, str) and raw_agent_name \
+            else type(agent).__name__.lower()
         handler_key = f"{_HANDLER_PREFIX}agent.{agent_name}"
         layer       = cognitive_layer or _infer_adk_layer(agent)
 
