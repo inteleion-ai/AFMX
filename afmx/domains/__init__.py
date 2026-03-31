@@ -1,3 +1,16 @@
+# Copyright 2026 Agentdyne9
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 """
 AFMX Domain Packs
 =================
@@ -5,28 +18,18 @@ AFMX Domain Packs
 The COLUMN axis of the Cognitive Execution Matrix is *open* — any industry,
 any organisation, any team can define their own agent roles.
 
-The ROW axis (CognitiveLayer) is fixed forever — PERCEIVE → RETRIEVE → REASON
-→ PLAN → ACT → EVALUATE → REPORT is universal across every domain.
+The ROW axis (CognitiveLayer) is fixed forever — PERCEIVE -> RETRIEVE -> REASON
+-> PLAN -> ACT -> EVALUATE -> REPORT is universal across every domain.
 
-The COLUMN axis is pluggable — CODER makes no sense in a hospital; CLINICIAN
-makes no sense in a software company. Domain packs give each vertical its own
-vocabulary without changing a single line of the execution engine.
+Domain packs give each vertical its own vocabulary without changing a single
+line of the execution engine.
 
-Usage
------
-    # Tech / SRE (default)
+Usage::
+
     from afmx.domains.tech import TechDomain, AgentRole
-
-    # Finance
     from afmx.domains.finance import FinanceDomain
-
-    # Healthcare
     from afmx.domains.healthcare import HealthcareDomain
-
-    # Legal
     from afmx.domains.legal import LegalDomain
-
-    # Manufacturing / Industrial
     from afmx.domains.manufacturing import ManufacturingDomain
 
     # Custom domain
@@ -36,15 +39,11 @@ Usage
         name="logistics",
         description="Logistics and supply chain agent roles",
         roles={
-            "DISPATCHER":   "Assign routes and vehicles",
-            "TRACKER":      "Monitor shipment status",
-            "ANALYST":      "Demand forecasting and optimisation",
-            "COORDINATOR":  "Cross-carrier coordination",
-            "COMPLIANCE":   "Customs and regulatory checks",
-            "VERIFIER":     "Delivery confirmation",
-            "REPORTER":     "KPI and SLA reporting",
+            "DISPATCHER": "Assign routes and vehicles",
+            "TRACKER":    "Monitor shipment status",
+            "ANALYST":    "Demand forecasting and optimisation",
         },
-        tags=["logistics", "supply-chain", "transport"],
+        tags=["logistics", "supply-chain"],
     )
     domain_registry.register(my_domain)
 
@@ -53,28 +52,15 @@ Apache-2.0 License. See LICENSE for details.
 from dataclasses import dataclass, field
 from typing import Dict, FrozenSet, List, Optional
 
-# ─── DomainPack ───────────────────────────────────────────────────────────────
 
 @dataclass(frozen=True)
 class DomainPack:
-    """
-    A named set of agent role strings for a specific industry or function.
+    """A named set of agent role strings for a specific industry or function."""
 
-    Each domain pack defines:
-      - name        — short identifier (e.g. "finance", "healthcare")
-      - description — human-readable summary
-      - roles       — mapping of ROLE_NAME → description
-      - tags        — searchable tags
-
-    Roles are plain strings — no enum, no restriction. Any string that is
-    uppercase and contains only letters, digits, and underscores is valid.
-
-    The DomainPack is immutable after construction (frozen dataclass).
-    """
-    name:        str
+    name: str
     description: str
-    roles:       Dict[str, str]   = field(default_factory=dict)
-    tags:        List[str]        = field(default_factory=list)
+    roles: Dict[str, str] = field(default_factory=dict)
+    tags: List[str] = field(default_factory=list)
 
     @property
     def role_names(self) -> FrozenSet[str]:
@@ -92,25 +78,19 @@ class DomainPack:
     def to_dict(self) -> dict:
         """Serialise to a plain dict for API responses."""
         return {
-            "name":        self.name,
+            "name": self.name,
             "description": self.description,
-            "roles":       self.roles,
-            "tags":        self.tags,
-            "role_count":  len(self.roles),
+            "roles": self.roles,
+            "tags": self.tags,
+            "role_count": len(self.roles),
         }
 
     def __str__(self) -> str:
         return f"DomainPack({self.name!r}, {len(self.roles)} roles)"
 
 
-# ─── Domain Registry ──────────────────────────────────────────────────────────
-
 class DomainRegistry:
-    """
-    Global registry of domain packs.
-
-    Thread-safe for reads. Writes are only expected at startup.
-    """
+    """Global registry of domain packs. Thread-safe for reads."""
 
     def __init__(self) -> None:
         self._packs: Dict[str, DomainPack] = {}
@@ -128,10 +108,7 @@ class DomainRegistry:
         return [p.to_dict() for p in sorted(self._packs.values(), key=lambda p: p.name)]
 
     def resolve_role(self, role: str) -> Optional[str]:
-        """
-        Find the first domain pack that contains this role and return its description.
-        Returns None if no domain pack recognises the role.
-        """
+        """Find the first domain pack that contains this role and return its description."""
         for pack in self._packs.values():
             desc = pack.describe(role)
             if desc is not None:
@@ -152,6 +129,5 @@ class DomainRegistry:
         return name in self._packs
 
 
-# ─── Global registry instance ─────────────────────────────────────────────────
-
+#: Global singleton domain registry.
 domain_registry = DomainRegistry()
