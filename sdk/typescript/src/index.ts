@@ -655,20 +655,5 @@ export function buildEdge(from: string, to: string, condition?: string): Edge {
   return { from, to, ...(condition !== undefined && { condition }) };
 }
 
-// ─── Re-exports for convenience ───────────────────────────────────────────────
-
-export type {
-  AFMXClientConfig,
-  ExecuteRequest,
-  ExecutionMatrix,
-  ExecutionResponse,
-  ExecutionStatusResponse,
-  MatrixViewResponse,
-  Node,
-  NodeResult,
-  Edge,
-  DomainPack,
-  ValidateResponse,
-  RetryPolicy,
-  TimeoutPolicy,
-};
+// All types are already exported directly above via 'export interface' / 'export class'.
+// No re-export block needed — adding one causes TS2484 (conflicting declarations).
