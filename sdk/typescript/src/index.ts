@@ -372,7 +372,7 @@ export class AFMXClient {
 
     this.headers = {
       'Content-Type': 'application/json',
-      'User-Agent':   '@agentdyne9/afmx/1.2.1',
+      'User-Agent':   '@agentdyne9/afmx/1.3.0',
     };
     if (config.apiKey) {
       this.headers['X-API-Key'] = config.apiKey;

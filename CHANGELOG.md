@@ -4,7 +4,7 @@ All notable changes are documented here.
 
 ---
 
-## [1.3.0] — 2026-03-26 — Enterprise Adapters + Platform Integrations
+## [1.3.0] — 2026-03-31 — Enterprise Adapters + Platform Integrations
 
 ### Summary
 

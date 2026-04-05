@@ -1,0 +1,10 @@
+# TypeScript SDK build artifacts — not published to npm
+node_modules/
+*.log
+.eslintcache
+coverage/
+*.tsbuildinfo
+src/
+tsconfig.json
+jest.config.*
+.eslintrc*
