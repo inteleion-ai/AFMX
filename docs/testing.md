@@ -1,6 +1,6 @@
 # Testing
 
-AFMX has a comprehensive test suite with 290+ tests across unit and integration layers. All tests use `pytest` with `asyncio_mode="auto"` — no boilerplate needed.
+AFMX has a comprehensive test suite with 400+ tests across unit and integration layers. All tests use `pytest` with `asyncio_mode="auto"` — no boilerplate needed.
 
 ---
 
@@ -9,7 +9,7 @@ AFMX has a comprehensive test suite with 290+ tests across unit and integration 
 ```
 tests/
 ├── conftest.py                  # Shared fixtures (minimal — each file is self-contained)
-├── unit/                        # 18 files, ~250 tests
+├── unit/                        # 22 files, 400+ tests
 │   ├── test_node.py             # Node model, NodeResult, RetryPolicy, TimeoutPolicy
 │   ├── test_edge.py             # Edge, EdgeCondition, all 5 condition types
 │   ├── test_matrix.py           # ExecutionMatrix, topological sort, cycle detection
@@ -25,8 +25,12 @@ tests/
 │   ├── test_matrix_store.py     # InMemoryMatrixStore: versioning, latest, delete
 │   ├── test_checkpoint.py       # CheckpointStore: incremental update, apply_to_context
 │   ├── test_plugin_registry.py  # PluginRegistry: decorators, sync, disable/enable
-│   ├── test_adapters.py         # All 4 adapters (mocked framework imports)
-│   └── test_openai_adapter.py   # OpenAI adapter in depth
+│   ├── test_adapters.py         # All 4 original adapters (mocked framework imports)
+│   ├── test_openai_adapter.py   # OpenAI adapter in depth
+│   ├── test_cognitive_matrix.py # CognitiveLayer, AgentRole, MatrixAddress, domain packs
+│   ├── test_diagonal_engine.py  # DIAGONAL execution mode, CognitiveModelRouter
+│   ├── test_week1_week2_fixes.py # MCP adapter, matrix_snapshot, LAYER_STARTED events
+│   └── test_v130_adapters_integrations.py # SK, ADK, Bedrock, HyperState, MAP, RHFL
 └── integration/
     ├── test_engine.py           # AFMXEngine: all modes, policies, hooks, events, fallback
     ├── test_api.py              # FastAPI endpoints via TestClient
@@ -41,7 +45,7 @@ tests/
 # Activate your virtualenv first
 source .venv/bin/activate
 
-# Full suite (290+ tests)
+# Full suite (400+ tests)
 python3.10 -m pytest tests/ -v
 
 # Quiet (just pass/fail counts)
@@ -322,7 +326,7 @@ open htmlcov/index.html   # macOS
 xdg-open htmlcov/index.html  # Linux
 ```
 
-Current coverage target: **70%** (enforced in CI via `fail_under = 70` in `pyproject.toml`).
+Current coverage target: **60%** (enforced in CI via `fail_under = 60` in `pyproject.toml`).
 
 Key modules with high coverage: `core/engine.py`, `core/executor.py`, `core/retry.py`, `models/*.py`.
 

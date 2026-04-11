@@ -68,3 +68,18 @@ Every new `.py` file must start with:
 
 Open a [Discussion](https://github.com/inteleion-ai/AFMX/discussions) or
 email **hello@agentdyne9.com**.
+
+## TypeScript SDK
+
+The TypeScript SDK lives in `sdk/typescript/`. To contribute:
+
+```bash
+cd sdk/typescript
+npm install
+npm run typecheck   # tsc --noEmit
+npm run build       # compile to dist/
+```
+
+All public API surface must have JSDoc comments. The SDK must have zero runtime
+dependencies (`dependencies` in `package.json` must remain empty). Follow the
+same Conventional Commits style as the Python codebase.

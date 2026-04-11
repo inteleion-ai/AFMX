@@ -1,11 +1,8 @@
-# AFMX — Installation & Quick Start Guide
+# AFMX — Installation Guide
 
 ## Python Version
 
 AFMX requires **Python 3.10 or higher**.
-
-Your system may have multiple Python versions. Always use `python3.10` (or `python3`)
-explicitly — never `python` alone (that may resolve to the system Python 3.6).
 
 ---
 
@@ -22,13 +19,17 @@ python3 --version
 ## Step 2 — Install AFMX
 
 ```bash
-cd /home/opc/afmx
+# From PyPI (recommended)
+pip install afmx
 
-# Option A: editable install (recommended for development)
-python3.10 -m pip install -e ".[dev]"
+# With optional extras
+pip install "afmx[mcp,redis,metrics]"
 
-# Option B: plain install from requirements.txt
-python3.10 -m pip install -r requirements.txt
+# From source (development)
+git clone https://github.com/inteleion-ai/AFMX.git
+cd AFMX
+python3.10 -m venv .venv && source .venv/bin/activate
+pip install -e ".[dev]"
 ```
 
 ---

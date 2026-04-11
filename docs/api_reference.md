@@ -16,7 +16,7 @@ Server health, concurrency stats, feature flags, and Agentability status.
 ```json
 {
   "status": "healthy",
-  "version": "1.0.0",
+  "version": "1.3.0",
   "environment": "development",
   "store_backend": "memory",
   "uptime_seconds": 142.3,

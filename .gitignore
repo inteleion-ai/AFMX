@@ -1,3 +1,7 @@
+# Internal documents — never commit to public repo
+OSS_ENTERPRISE_ANALYSIS_INTERNAL.md
+*.bak
+
 # ─── Python ──────────────────────────────────────────────────────────────────
 __pycache__/
 *.py[cod]
