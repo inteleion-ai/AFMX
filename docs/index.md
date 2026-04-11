@@ -1,7 +1,7 @@
 # AFMX Documentation
 
 **Agent Flow Matrix Execution Engine**
-Version 1.0.0 · Python 3.10+ · MIT License
+Version 1.3.0 · Python 3.10+ · Apache 2.0
 
 ---
 
@@ -191,11 +191,10 @@ See [Observability](observability.md#agentability-integration) for full setup in
 
 ## Test Suite
 
-| Suite | Count | Command |
+| Test Suite | Count | Command |
 |---|---|---|
-| Unit tests | 250+ | `pytest tests/unit/ -v` |
-| Integration tests | 40+ | `pytest tests/integration/ -v` |
-| All tests | 290+ | `pytest` |
+| Unit tests | 400+ | `pytest tests/unit/ -v` |
+| All tests | 400+ | `pytest` |
 | Live API suite | 17 sections | `python scripts/test_realtime.py` |
 | WebSocket demo | 3 scenarios | `python scripts/test_ws.py` |
 | Load test | configurable | `python scripts/test_load.py --concurrency 20 --total 200` |

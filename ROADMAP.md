@@ -1,9 +1,8 @@
 # AFMX — Product Roadmap
-## March 21, 2026 → September 21, 2026
+## March 31, 2026 → September 21, 2026
 
-**Author:** Founder / Agentdyne9
-**Status:** Internal working document — not for external distribution
-**Review cycle:** Monthly (next: April 21, 2026)
+**Status:** Public roadmap. Updated monthly.
+**Contact:** hello@agentdyne9.com
 
 ---
 
